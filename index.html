@@ -110,10 +110,17 @@ window.addEventListener("resize", resize);
 // --- Microphone Setup ---
 let smoothedRMS = 0;
 let targetAmplitude = 0;
-const BASE_AMPLITUDE = 12;
-const MIN_WAVE = 10;
-const RESPONSIVE_BOOST = 120;
-const VOICE_Y_SHIFT = 20;
+
+// --- Detect mobile ---
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+// --- Microphone constants ---
+const BASE_AMPLITUDE = isMobile ? 20 : 12;
+const MIN_WAVE = isMobile ? 15 : 10;
+const RESPONSIVE_BOOST = isMobile ? 180 : 120;
+const VOICE_Y_SHIFT = isMobile ? 30 : 20;
+
+
 
 async function setupMic() {
     const stream = await navigator.mediaDevices.getUserMedia({ 
