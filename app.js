@@ -64,10 +64,10 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
-/* ---------- Pointer handling ONLY for canvas (no buttons) ---------- */
+/* ---------- Pointer handling ONLY for canvas ---------- */
 canvas.addEventListener("pointerdown", e=>{
   isTalking = true;
-  e.preventDefault(); // prevent selection / scrolling
+  e.preventDefault(); // prevent selection / scrolling on canvas only
 });
 canvas.addEventListener("pointerup", e=>{
   isTalking = false;
