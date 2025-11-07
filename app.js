@@ -64,20 +64,6 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
-/* ---------- Pointer handling ONLY for canvas ---------- */
-canvas.addEventListener("pointerdown", e=>{
-  isTalking = true;
-  e.preventDefault(); // prevent selection / scrolling on canvas only
-});
-canvas.addEventListener("pointerup", e=>{
-  isTalking = false;
-  e.preventDefault();
-});
-canvas.addEventListener("pointercancel", e=>{
-  isTalking = false;
-  e.preventDefault();
-});
-
 function drawWave(layer,width,height,alphaMultiplier=1){
   ctx.beginPath(); ctx.moveTo(0,height);
   const noiseScale=2/width, dynamicOffset=smoothedRMS*VOICE_Y_SHIFT, baseY=height*0.75-dynamicOffset;
@@ -100,11 +86,18 @@ function draw(){
   t+=1; requestAnimationFrame(draw);
 }
 
-/* ---------- Start Button (Unified) ---------- */
+/* ---------- Start Button ---------- */
 const startBtn = document.getElementById("startBtn");
 const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
 const video = document.getElementById("bgVideo");
+
+function attachPointerListeners() {
+  // Attach pointer listeners to canvas after it becomes visible
+  canvas.addEventListener("pointerdown", e=>{ isTalking=true; e.preventDefault(); });
+  canvas.addEventListener("pointerup", e=>{ isTalking=false; e.preventDefault(); });
+  canvas.addEventListener("pointercancel", e=>{ isTalking=false; e.preventDefault(); });
+}
 
 function startConvo() {
   if(micInitialized) return;
@@ -114,9 +107,16 @@ function startConvo() {
       await initAudio(stream);
       startScreen.style.display="none";
       agentScreen.style.display="block";
+
+      // Play video
       video.muted=true; video.playsInline=true;
       await video.play().catch(()=>{});
+
+      // Start loops
       resize(); draw(); audioLoop();
+
+      // Attach pointer listeners now that canvas is visible
+      attachPointerListeners();
     })
     .catch(err=>{
       console.error("Mic access failed:",err);
