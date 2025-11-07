@@ -116,22 +116,24 @@ function startConvo() {
 startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Canvas Press & Hold (Desktop + Mobile) ---------- */
-function startTalking(e){
+/* ---------- Video Press & Hold (Desktop + Mobile) ---------- */
+function startTalkingVideo(e){
+  console.log("startTalking on video");
   isTalking = true;
   e.preventDefault();
 }
-function stopTalking(e){
+function stopTalkingVideo(e){
+  console.log("stopTalking on video");
   isTalking = false;
   e.preventDefault();
 }
 
 // Desktop pointer events
-canvas.addEventListener("pointerdown", startTalking);
-canvas.addEventListener("pointerup", stopTalking);
-canvas.addEventListener("pointercancel", stopTalking);
+video.addEventListener("pointerdown", startTalkingVideo);
+video.addEventListener("pointerup", stopTalkingVideo);
+video.addEventListener("pointercancel", stopTalkingVideo);
 
 // Mobile touch events
-canvas.addEventListener("touchstart", startTalking, {passive:false});
-canvas.addEventListener("touchend", stopTalking, {passive:false});
-canvas.addEventListener("touchcancel", stopTalking, {passive:false});
+video.addEventListener("touchstart", startTalkingVideo, {passive:false});
+video.addEventListener("touchend", stopTalkingVideo, {passive:false});
+video.addEventListener("touchcancel", stopTalkingVideo, {passive:false});
