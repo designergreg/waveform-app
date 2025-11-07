@@ -64,11 +64,15 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
-// ---------- Mobile touch handling (PREVENT selection) ----------
+// ---------- Mobile touch handling (selectively prevent selection) ----------
 ["touchstart","touchend","touchcancel"].forEach(evt=>{
   document.body.addEventListener(evt, e=>{
-    e.preventDefault();       // <-- prevents selection / callout
-    isTalking = (evt==="touchstart");
+    const target = e.target;
+    // Only prevent default if touching canvas or agentScreen (not buttons)
+    if(target.closest("#agentScreen") || target === canvas){
+      e.preventDefault();
+      isTalking = (evt==="touchstart");
+    }
   }, {passive:false});
 });
 
