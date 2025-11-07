@@ -36,7 +36,7 @@
     width: 343px;
     height: 60px;
     border-radius: 30px;
-    background: rgba(255, 0, 0, 0.25);
+    background: rgba(0, 255, 0, 0.25);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -128,8 +128,8 @@ const RESPONSIVE_BOOST = isMobile ? 180 : 120;
 const VOICE_Y_SHIFT = isMobile ? 30 : 20;
 
 // RMS scaling constants (we amplify with GainNode and slightly increase multiplier)
-const RMS_MULTIPLIER = isMobile ? 6 : 5;   // we rely on GainNode primarily; keep multiplier modest
-const RMS_EXPONENT = isMobile ? 1.3 : 1.2;
+const RMS_MULTIPLIER = isMobile ? 12 : 5;   // we rely on GainNode primarily; keep multiplier modest
+const RMS_EXPONENT = isMobile ? 1.4 : 1.2;
 
 // Will be populated by setupMic
 let audioCtx = null;
@@ -141,35 +141,28 @@ async function setupMicPipeline() {
   micInitialized = true;
 
   try {
+    // Ask for permission IMMEDIATELY when this function runs
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
     });
 
-    // create AudioContext
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // create nodes: source -> gain -> analyser
     const source = audioCtx.createMediaStreamSource(stream);
 
-    // Gain to boost mobile signals (non-destructive — amplifies for analyser)
     const gainNode = audioCtx.createGain();
-    // On mobile use stronger gain; on desktop keep 1
-    gainNode.gain.value = isMobile ? 6.0 : 1.0; // tweak if needed
+    gainNode.gain.value = isMobile ? 14.0 : 1.0;
 
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 512; // reasonable tradeoff
+    analyser.fftSize = 512;
     buffer = new Uint8Array(analyser.frequencyBinCount);
 
-    // Connect: source -> gain -> analyser -> destination (no output to speakers)
     source.connect(gainNode);
     gainNode.connect(analyser);
-    // DO NOT connect analyser to destination (we don't want it to play back)
-    // but you can optionally connect gainNode -> audioCtx.destination if you want monitoring.
 
-    // Start the read loop
-    requestAnimationFrame(audioLoop);
+    // Don't start processing yet — we will activate on gesture
   } catch (err) {
-    console.error("setupMicPipeline error:", err);
+    console.error("Mic error:", err);
     micInitialized = false;
   }
 }
@@ -213,16 +206,15 @@ function audioLoop() {
 
 /* Start mic on first user gesture (required on mobile). On desktop this will run immediately if you trigger a click or press. */
 function initMicOnFirstGesture() {
-  // If already initialized, nothing to do
-  if (micInitialized) return;
+  if (!audioCtx) return;
 
-  // Kick off pipeline and resume audio context if needed
-  setupMicPipeline().then(() => {
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
-  }).catch(() => {});
-  // remove listeners after first gesture
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume().catch(()=>{});
+  }
+
+  // Start the audio loop when the context becomes active
+  requestAnimationFrame(audioLoop);
+
   document.body.removeEventListener('touchstart', initMicOnFirstGesture);
   document.body.removeEventListener('click', initMicOnFirstGesture);
 }
@@ -326,7 +318,7 @@ function draw() {
   t += 1;
   requestAnimationFrame(draw);
 }
-
+setupMicPipeline();
 draw();
 </script>
 
