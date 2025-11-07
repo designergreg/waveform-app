@@ -64,11 +64,10 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
-// ---------- Mobile touch handling (selectively prevent selection) ----------
+// Mobile touch handling for wave / fade
 ["touchstart","touchend","touchcancel"].forEach(evt=>{
   document.body.addEventListener(evt, e=>{
     const target = e.target;
-    // Only prevent default if touching canvas or agentScreen (not buttons)
     if(target.closest("#agentScreen") || target === canvas){
       e.preventDefault();
       isTalking = (evt==="touchstart");
@@ -104,27 +103,34 @@ const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
 const video = document.getElementById("bgVideo");
 
-startBtn.addEventListener("click", async ()=>{
+function startConvo() {
   if(micInitialized) return;
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    micInitialized=true;
-    await initAudio(stream);
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
+    .then(async stream=>{
+      micInitialized=true;
+      await initAudio(stream);
 
-    // Hide start screen, show agent
-    startScreen.style.display="none";
-    agentScreen.style.display="block";
+      startScreen.style.display="none";
+      agentScreen.style.display="block";
 
-    // Play video
-    video.muted=true; video.playsInline=true;
-    await video.play().catch(()=>{});
+      video.muted=true; video.playsInline=true;
+      await video.play().catch(()=>{});
 
-    // Start loops
-    resize(); draw(); audioLoop();
+      resize(); draw(); audioLoop();
+    })
+    .catch(err=>{
+      console.error("Mic access failed:",err);
+      alert("Mic access is required to continue.");
+    });
+}
 
-  } catch(err){
-    console.error("Mic access failed:",err);
-    alert("Mic access is required to continue.");
-  }
-});
+// Use touchend for mobile, click for desktop
+if(isMobile){
+  startBtn.addEventListener("touchend", e => {
+    e.preventDefault(); // prevent double-tap zoom
+    startConvo();
+  });
+} else {
+  startBtn.addEventListener("click", startConvo);
+}
