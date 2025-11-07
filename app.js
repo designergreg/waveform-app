@@ -92,13 +92,6 @@ const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
 const video = document.getElementById("bgVideo");
 
-function attachPointerListeners() {
-  // Attach pointer listeners to canvas after it becomes visible
-  canvas.addEventListener("pointerdown", e=>{ isTalking=true; e.preventDefault(); });
-  canvas.addEventListener("pointerup", e=>{ isTalking=false; e.preventDefault(); });
-  canvas.addEventListener("pointercancel", e=>{ isTalking=false; e.preventDefault(); });
-}
-
 function startConvo() {
   if(micInitialized) return;
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
@@ -108,15 +101,10 @@ function startConvo() {
       startScreen.style.display="none";
       agentScreen.style.display="block";
 
-      // Play video
       video.muted=true; video.playsInline=true;
       await video.play().catch(()=>{});
 
-      // Start loops
       resize(); draw(); audioLoop();
-
-      // Attach pointer listeners now that canvas is visible
-      attachPointerListeners();
     })
     .catch(err=>{
       console.error("Mic access failed:",err);
@@ -124,9 +112,11 @@ function startConvo() {
     });
 }
 
-// Use both click and touchend to cover all devices
+// Start button events
 startBtn.addEventListener("click", startConvo);
-startBtn.addEventListener("touchend", e=>{
-  e.preventDefault(); // prevent double-tap zoom
-  startConvo();
-});
+startBtn.addEventListener("touchend", startConvo); // no preventDefault here
+
+/* ---------- Canvas Press & Hold ---------- */
+canvas.addEventListener("pointerdown", ()=>{ isTalking=true; });
+canvas.addEventListener("pointerup", ()=>{ isTalking=false; });
+canvas.addEventListener("pointercancel", ()=>{ isTalking=false; });
