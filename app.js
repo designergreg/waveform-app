@@ -114,9 +114,24 @@ function startConvo() {
 
 // Start button events
 startBtn.addEventListener("click", startConvo);
-startBtn.addEventListener("touchend", startConvo); // no preventDefault here
+startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Canvas Press & Hold ---------- */
-canvas.addEventListener("pointerdown", ()=>{ isTalking=true; });
-canvas.addEventListener("pointerup", ()=>{ isTalking=false; });
-canvas.addEventListener("pointercancel", ()=>{ isTalking=false; });
+/* ---------- Canvas Press & Hold (Desktop + Mobile) ---------- */
+function startTalking(e){
+  isTalking = true;
+  e.preventDefault();
+}
+function stopTalking(e){
+  isTalking = false;
+  e.preventDefault();
+}
+
+// Desktop pointer events
+canvas.addEventListener("pointerdown", startTalking);
+canvas.addEventListener("pointerup", stopTalking);
+canvas.addEventListener("pointercancel", stopTalking);
+
+// Mobile touch events
+canvas.addEventListener("touchstart", startTalking, {passive:false});
+canvas.addEventListener("touchend", stopTalking, {passive:false});
+canvas.addEventListener("touchcancel", stopTalking, {passive:false});
