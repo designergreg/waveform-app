@@ -8,20 +8,24 @@
 </head>
 <body>
 
-  <div id="startScreen">
-    <button id="startBtn">Allow Mic Access</button>
+<div id="startScreen">
+  <button id="startBtn">Tap to Start</button>
+</div>
+
+<div id="micScreen" style="display:none;">
+  <button id="micBtn">Allow Mic Access</button>
+</div>
+
+<div id="agentScreen">
+  <video id="bgVideo" src="therapist_silent_30.mp4" autoplay loop muted playsinline></video>
+
+  <div class="actionbar">
+    <canvas id="wave"></canvas>
+    <div class="icon-button"><img src="icons/linear/pause.svg" alt="Pause"></div>
+    <div class="icon-button"><img src="icons/linear/more.svg" alt="More"></div>
   </div>
+</div>
 
-  <div id="agentScreen">
-    <video id="bgVideo" src="therapist_silent_30.mp4" autoplay loop muted playsinline></video>
-
-    <div class="actionbar">
-      <canvas id="wave"></canvas>
-      <div class="icon-button"><img src="icons/linear/pause.svg" alt="Pause"></div>
-      <div class="icon-button"><img src="icons/linear/more.svg" alt="More"></div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
