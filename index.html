@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #111;
+    background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%)
   }
 
   #startBtn {
@@ -38,8 +38,8 @@
     cursor: pointer;
     border: none;
     border-radius: 10px;
-    background: #1F4C7D;
-    color: white;
+    background: white;
+    color: #1F465D;
   }
 
   /* Agent screen elements */
@@ -289,13 +289,24 @@ startBtn.addEventListener("click", async ()=>{
   document.getElementById("startScreen").style.display="none";
   document.getElementById("agentScreen").style.display="block";
 
+  // Resume AudioContext
   if(audioCtx && audioCtx.state==="suspended") await audioCtx.resume();
 
-  document.getElementById("bgVideo").play().catch(()=>{});
+  // Play video with fallback for autoplay policies
+  const video = document.getElementById("bgVideo");
+  video.muted = true;
+  video.playsInline = true;
+  const playPromise = video.play();
+  if(playPromise !== undefined){
+    playPromise.catch(err=>{
+      console.warn("Video failed to autoplay:", err);
+      setTimeout(()=>video.play().catch(()=>{}), 100);
+    });
+  }
 
-  requestAnimationFrame(audioLoop);
   resize();
   draw();
+  audioLoop();
 });
 </script>
 
