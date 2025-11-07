@@ -1,13 +1,10 @@
 /* ---------- Canvas ---------- */
 const canvas = document.getElementById("wave");
 const ctx = canvas.getContext("2d");
-function resize() {
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-}
+function resize() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
 window.addEventListener("resize", resize);
 
-/* ---------- Mobile ---------- */
+/* ---------- Mobile detection ---------- */
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 /* ---------- Audio ---------- */
@@ -23,11 +20,11 @@ let audioCtx = null, analyser = null, buffer = null;
 
 async function initAudio(stream){
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === "suspended") await audioCtx.resume();
+  if(audioCtx.state==="suspended") await audioCtx.resume();
 
   const source = audioCtx.createMediaStreamSource(stream);
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = isMobile ? 14 : 1;
+  gainNode.gain.value = isMobile?14:1;
 
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 512;
@@ -38,124 +35,79 @@ async function initAudio(stream){
 }
 
 /* ---------- Audio Loop ---------- */
-function audioLoop() {
-  if (!analyser || !buffer) { requestAnimationFrame(audioLoop); return; }
-
+function audioLoop(){
+  if(!analyser||!buffer){requestAnimationFrame(audioLoop);return;}
   analyser.getByteTimeDomainData(buffer);
-  let sum = 0;
-  for (let i = 0; i < buffer.length; i++) {
-    const v = (buffer[i]-128)/128;
-    sum += v*v;
-  }
-
+  let sum=0;
+  for(let i=0;i<buffer.length;i++){const v=(buffer[i]-128)/128;sum+=v*v;}
   let rawRMS = Math.sqrt(sum/buffer.length);
-  if(rawRMS < 0.005) rawRMS = 0;
-
-  const scaledRMS = Math.pow(rawRMS * RMS_MULTIPLIER, RMS_EXPONENT);
-  const ATTACK = 0.8, RELEASE = 0.05;
-
-  if(scaledRMS > smoothedRMS) smoothedRMS = smoothedRMS*(1-ATTACK)+scaledRMS*ATTACK;
-  else smoothedRMS = smoothedRMS*(1-RELEASE)+scaledRMS*RELEASE;
-
+  if(rawRMS<0.005) rawRMS=0;
+  const scaledRMS = Math.pow(rawRMS*RMS_MULTIPLIER,RMS_EXPONENT);
+  const ATTACK=0.8, RELEASE=0.05;
+  smoothedRMS = scaledRMS>smoothedRMS ? smoothedRMS*(1-ATTACK)+scaledRMS*ATTACK : smoothedRMS*(1-RELEASE)+scaledRMS*RELEASE;
   targetAmplitude = MIN_WAVE + BASE_AMPLITUDE + smoothedRMS * RESPONSIVE_BOOST;
   requestAnimationFrame(audioLoop);
 }
 
-/* ---------- Wave ---------- */
-const noise = {
-  grad: Array.from({length:256},()=>Math.random()*2-1),
-  fade: t=>t*t*t*(t*(t*6-15)+10),
-  lerp: (a,b,t)=>a+(b-a)*t,
-  get(x){ const X=Math.floor(x)&255; const t=x-Math.floor(x); const g1=this.grad[X], g2=this.grad[X+1]; return this.lerp(g1*t, g2*(t-1), this.fade(t)); }
-};
-
-const speed=0.004, layers=[
-  {color:'#5A8696',alpha:0.6,xShift:0},
-  {color:'#CD568A',alpha:0.6,xShift:80},
-  {color:'#9E6FA8',alpha:0.6,xShift:160},
-  {color:'#0D4CAC',alpha:0.7,xShift:240}
+/* ---------- Perlin noise & Wave ---------- */
+const noise={grad:Array.from({length:256},()=>Math.random()*2-1),fade:t=>t*t*t*(t*(t*6-15)+10),lerp:(a,b,t)=>a+(b-a)*t,get(x){const X=Math.floor(x)&255;const t=x-Math.floor(x);const g1=this.grad[X],g2=this.grad[X+1];return this.lerp(g1*t,g2*(t-1),this.fade(t));}};
+const layers=[
+  {color:'#5A8696',alpha:0.6,xShift:0},{color:'#CD568A',alpha:0.6,xShift:80},
+  {color:'#9E6FA8',alpha:0.6,xShift:160},{color:'#0D4CAC',alpha:0.7,xShift:240}
 ];
-
-let t=0, isTalking=false, fadeFactor=1, FADE_SPEED=0.05;
-
-["keydown","keyup"].forEach(ev=>{
-  window.addEventListener(ev,e=>{
-    if(e.code==="Space") isTalking=(ev==="keydown");
-  });
-});
-["touchstart","touchend","touchcancel"].forEach(evt=>{
-  document.body.addEventListener(evt,e=>{
-    isTalking = (evt==="touchstart");
-  }, {passive:false});
-});
+let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
+["keydown","keyup"].forEach(ev=>{window.addEventListener(ev,e=>{if(e.code==="Space") isTalking=(ev==="keydown");});});
+["touchstart","touchend","touchcancel"].forEach(evt=>{document.body.addEventListener(evt,e=>{isTalking=(evt==="touchstart");},{passive:false});});
 
 function drawWave(layer,width,height,alphaMultiplier=1){
-  ctx.beginPath();
-  ctx.moveTo(0,height);
-  const noiseScale = 2/width;
-  const dynamicOffset = smoothedRMS*VOICE_Y_SHIFT;
-  const baseY = height*0.75 - dynamicOffset;
-
+  ctx.beginPath(); ctx.moveTo(0,height);
+  const noiseScale=2/width, dynamicOffset=smoothedRMS*VOICE_Y_SHIFT, baseY=height*0.75-dynamicOffset;
   for(let x=0;x<width;x++){
-    const n = noise.get((x+layer.xShift)*noiseScale+t*speed);
-    const y = baseY - n*0.5*targetAmplitude;
-    ctx.lineTo(x,y);
+    const n=noise.get((x+layer.xShift)*noiseScale+t*0.004);
+    ctx.lineTo(x, baseY - n*0.5*targetAmplitude);
   }
-
-  ctx.lineTo(width,height);
-  ctx.closePath();
-  const r=parseInt(layer.color.slice(1,3),16),
-        g=parseInt(layer.color.slice(3,5),16),
-        b=parseInt(layer.color.slice(5,7),16);
-  ctx.fillStyle = `rgba(${r},${g},${b},${layer.alpha*alphaMultiplier})`;
+  ctx.lineTo(width,height); ctx.closePath();
+  const r=parseInt(layer.color.slice(1,3),16), g=parseInt(layer.color.slice(3,5),16), b=parseInt(layer.color.slice(5,7),16);
+  ctx.fillStyle=`rgba(${r},${g},${b},${layer.alpha*alphaMultiplier})`;
   ctx.fill();
 }
 
 const buttons = document.querySelectorAll(".icon-button");
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  fadeFactor = isTalking ? Math.min(fadeFactor + FADE_SPEED,1) : Math.max(fadeFactor - FADE_SPEED,0);
+  fadeFactor = isTalking ? Math.min(fadeFactor+FADE_SPEED,1) : Math.max(fadeFactor-FADE_SPEED,0);
   buttons.forEach(btn=>{btn.style.display=fadeFactor>0?"none":"flex";});
   if(fadeFactor>0) layers.forEach(layer=>drawWave(layer,canvas.width,canvas.height,fadeFactor));
-  t+=1;
-  requestAnimationFrame(draw);
+  t+=1; requestAnimationFrame(draw);
 }
 
-/* ---------- Start Button Flow ---------- */
+/* ---------- Start Button (ONE CLICK FLOW) ---------- */
 const startBtn = document.getElementById("startBtn");
-const micBtn = document.getElementById("micBtn");
 const startScreen = document.getElementById("startScreen");
-const micScreen = document.getElementById("micScreen");
 const agentScreen = document.getElementById("agentScreen");
 const video = document.getElementById("bgVideo");
 
 startBtn.addEventListener("click", async ()=>{
-  startScreen.style.display = "none";
-  micScreen.style.display = "flex";
-
-  // Play muted video and resume AudioContext immediately
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state==="suspended") await audioCtx.resume();
-  video.muted = true;
-  video.playsInline = true;
-  await video.play().catch(()=>{});
-});
-
-micBtn.addEventListener("click", async ()=>{
   if(micInitialized) return;
-  try{
+
+  try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    micInitialized = true;
+    micInitialized=true;
     await initAudio(stream);
 
-    micScreen.style.display = "none";
-    agentScreen.style.display = "block";
+    // Hide start screen, show agent
+    startScreen.style.display="none";
+    agentScreen.style.display="block";
 
-    resize();
-    draw();
-    audioLoop();
-  }catch(err){
-    console.error("Mic permission failed:",err);
+    // Play video
+    video.muted=true; video.playsInline=true;
+    await video.play().catch(()=>{});
+
+    // Start loops
+    resize(); draw(); audioLoop();
+
+  } catch(err){
+    console.error("Mic access failed:",err);
     alert("Mic access is required to continue.");
   }
 });
