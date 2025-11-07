@@ -60,6 +60,7 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
 // Keyboard handling
 ["keydown","keyup"].forEach(ev=>{
   window.addEventListener(ev,e=>{
+  console.log("stopTalking");
     if(e.code==="Space") isTalking=(ev==="keydown");
   });
 });
@@ -116,24 +117,24 @@ function startConvo() {
 startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Video Press & Hold (Desktop + Mobile) ---------- */
-function startTalkingVideo(e){
-  console.log("startTalking on video");
+/* ---------- Canvas Press & Hold (Desktop + Mobile) ---------- */
+function startTalking(e){
+  console.log("startTalking");
   isTalking = true;
   e.preventDefault();
 }
-function stopTalkingVideo(e){
-  console.log("stopTalking on video");
+function stopTalking(e){
+  console.log("stopTalking");
   isTalking = false;
   e.preventDefault();
 }
 
 // Desktop pointer events
-video.addEventListener("pointerdown", startTalkingVideo);
-video.addEventListener("pointerup", stopTalkingVideo);
-video.addEventListener("pointercancel", stopTalkingVideo);
+canvas.addEventListener("pointerdown", startTalking);
+canvas.addEventListener("pointerup", stopTalking);
+canvas.addEventListener("pointercancel", stopTalking);
 
 // Mobile touch events
-video.addEventListener("touchstart", startTalkingVideo, {passive:false});
-video.addEventListener("touchend", stopTalkingVideo, {passive:false});
-video.addEventListener("touchcancel", stopTalkingVideo, {passive:false});
+canvas.addEventListener("touchstart", startTalking, {passive:false});
+canvas.addEventListener("touchend", stopTalking, {passive:false});
+canvas.addEventListener("touchcancel", stopTalking, {passive:false});
