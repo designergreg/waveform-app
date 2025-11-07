@@ -4,6 +4,13 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-family: sans-serif;
+
+  /* Prevent text selection & callouts */
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
 }
 
 #startScreen, #agentScreen {
@@ -29,6 +36,9 @@ html, body {
   border-radius: 999px;
   background: white;
   color: #1F465D;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #agentScreen {
@@ -82,6 +92,8 @@ html, body {
   justify-content: center;
   z-index: 1;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .icon-button img {

@@ -56,8 +56,16 @@ const layers=[
   {color:'#9E6FA8',alpha:0.6,xShift:160},{color:'#0D4CAC',alpha:0.7,xShift:240}
 ];
 let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
+
 ["keydown","keyup"].forEach(ev=>{window.addEventListener(ev,e=>{if(e.code==="Space") isTalking=(ev==="keydown");});});
-["touchstart","touchend","touchcancel"].forEach(evt=>{document.body.addEventListener(evt,e=>{isTalking=(evt==="touchstart");},{passive:false});});
+
+// ---------- Fix mobile press-and-hold ----------
+["touchstart","touchend","touchcancel"].forEach(evt=>{
+  document.body.addEventListener(evt, e=>{
+    e.preventDefault(); // stop selection / context menu
+    isTalking = (evt==="touchstart");
+  }, {passive:false});
+});
 
 function drawWave(layer,width,height,alphaMultiplier=1){
   ctx.beginPath(); ctx.moveTo(0,height);
