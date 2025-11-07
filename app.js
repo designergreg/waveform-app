@@ -57,12 +57,17 @@ const layers=[
 ];
 let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
 
-["keydown","keyup"].forEach(ev=>{window.addEventListener(ev,e=>{if(e.code==="Space") isTalking=(ev==="keydown");});});
+// Keyboard handling
+["keydown","keyup"].forEach(ev=>{
+  window.addEventListener(ev,e=>{
+    if(e.code==="Space") isTalking=(ev==="keydown");
+  });
+});
 
-// ---------- Fix mobile press-and-hold ----------
+// ---------- Mobile touch handling (PREVENT selection) ----------
 ["touchstart","touchend","touchcancel"].forEach(evt=>{
   document.body.addEventListener(evt, e=>{
-    e.preventDefault(); // stop selection / context menu
+    e.preventDefault();       // <-- prevents selection / callout
     isTalking = (evt==="touchstart");
   }, {passive:false});
 });
