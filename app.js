@@ -64,15 +64,18 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
-// Mobile touch handling for wave / fade
-["touchstart","touchend","touchcancel"].forEach(evt=>{
-  document.body.addEventListener(evt, e=>{
-    const target = e.target;
-    if(target.closest("#agentScreen") || target === canvas){
-      e.preventDefault();
-      isTalking = (evt==="touchstart");
-    }
-  }, {passive:false});
+/* ---------- Pointer handling ONLY for canvas (no buttons) ---------- */
+canvas.addEventListener("pointerdown", e=>{
+  isTalking = true;
+  e.preventDefault(); // prevent selection / scrolling
+});
+canvas.addEventListener("pointerup", e=>{
+  isTalking = false;
+  e.preventDefault();
+});
+canvas.addEventListener("pointercancel", e=>{
+  isTalking = false;
+  e.preventDefault();
 });
 
 function drawWave(layer,width,height,alphaMultiplier=1){
@@ -97,7 +100,7 @@ function draw(){
   t+=1; requestAnimationFrame(draw);
 }
 
-/* ---------- Start Button (ONE CLICK FLOW) ---------- */
+/* ---------- Start Button (Unified) ---------- */
 const startBtn = document.getElementById("startBtn");
 const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
@@ -105,18 +108,14 @@ const video = document.getElementById("bgVideo");
 
 function startConvo() {
   if(micInitialized) return;
-
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
     .then(async stream=>{
       micInitialized=true;
       await initAudio(stream);
-
       startScreen.style.display="none";
       agentScreen.style.display="block";
-
       video.muted=true; video.playsInline=true;
       await video.play().catch(()=>{});
-
       resize(); draw(); audioLoop();
     })
     .catch(err=>{
@@ -125,12 +124,9 @@ function startConvo() {
     });
 }
 
-// Use touchend for mobile, click for desktop
-if(isMobile){
-  startBtn.addEventListener("touchend", e => {
-    e.preventDefault(); // prevent double-tap zoom
-    startConvo();
-  });
-} else {
-  startBtn.addEventListener("click", startConvo);
-}
+// Use both click and touchend to cover all devices
+startBtn.addEventListener("click", startConvo);
+startBtn.addEventListener("touchend", e=>{
+  e.preventDefault(); // prevent double-tap zoom
+  startConvo();
+});
