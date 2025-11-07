@@ -9,11 +9,14 @@
 <body>
 
 <div id="startScreen">
-  <button id="startBtn">Start Conversation</button>
+  <button id="startBtn">Start Convo</button>
 </div>
 
 <div id="agentScreen" style="display:none;">
   <video id="bgVideo" src="therapist_silent_30.mp4" autoplay loop muted playsinline></video>
+
+  <!-- Fullscreen invisible touch target -->
+  <div id="touchTarget"></div>
 
   <div class="actionbar">
     <canvas id="wave"></canvas>

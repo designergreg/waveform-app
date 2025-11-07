@@ -52,6 +52,17 @@ html, body {
   z-index: -2;
 }
 
+#touchTarget {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0.5; /* above video (-2) but below actionbar (1) */
+  background: transparent;
+  touch-action: none; /* allow preventing default for touch */
+}
+
 canvas#wave {
   position: absolute;
   top: 0;

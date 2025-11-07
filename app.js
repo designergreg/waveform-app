@@ -60,7 +60,6 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
 // Keyboard handling
 ["keydown","keyup"].forEach(ev=>{
   window.addEventListener(ev,e=>{
-  console.log("stopTalking");
     if(e.code==="Space") isTalking=(ev==="keydown");
   });
 });
@@ -117,24 +116,26 @@ function startConvo() {
 startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Canvas Press & Hold (Desktop + Mobile) ---------- */
-function startTalking(e){
-  console.log("startTalking");
+/* ---------- Touch Target for Press & Hold ---------- */
+const touchTarget = document.getElementById("touchTarget");
+
+function startTalkingTarget(e){
+  console.log("startTalking (touch target)");
   isTalking = true;
   e.preventDefault();
 }
-function stopTalking(e){
-  console.log("stopTalking");
+function stopTalkingTarget(e){
+  console.log("stopTalking (touch target)");
   isTalking = false;
   e.preventDefault();
 }
 
 // Desktop pointer events
-canvas.addEventListener("pointerdown", startTalking);
-canvas.addEventListener("pointerup", stopTalking);
-canvas.addEventListener("pointercancel", stopTalking);
+touchTarget.addEventListener("pointerdown", startTalkingTarget);
+touchTarget.addEventListener("pointerup", stopTalkingTarget);
+touchTarget.addEventListener("pointercancel", stopTalkingTarget);
 
 // Mobile touch events
-canvas.addEventListener("touchstart", startTalking, {passive:false});
-canvas.addEventListener("touchend", stopTalking, {passive:false});
-canvas.addEventListener("touchcancel", stopTalking, {passive:false});
+touchTarget.addEventListener("touchstart", startTalkingTarget, {passive:false});
+touchTarget.addEventListener("touchend", stopTalkingTarget, {passive:false});
+touchTarget.addEventListener("touchcancel", stopTalkingTarget, {passive:false});
