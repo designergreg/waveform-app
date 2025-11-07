@@ -75,6 +75,11 @@
     object-fit: contain;
     filter: brightness(0) invert(1); /* white icon */
   }
+
+  /* --- Hover --- */
+  .icon-button:hover {
+      background: #1F4C7D;
+  }
 </style>
 </head>
 <body>
@@ -110,15 +115,12 @@ window.addEventListener("resize", resize);
 // --- Microphone Setup ---
 let smoothedRMS = 0;
 let targetAmplitude = 0;
+const BASE_AMPLITUDE = 12;
+const MIN_WAVE = 10;
+const RESPONSIVE_BOOST = 120;
+const VOICE_Y_SHIFT = 20;
 
-// --- Detect mobile ---
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-// --- Microphone constants ---
-const BASE_AMPLITUDE = isMobile ? 20 : 12;
-const MIN_WAVE = isMobile ? 15 : 10;
-const RESPONSIVE_BOOST = isMobile ? 180 : 120;
-const VOICE_Y_SHIFT = isMobile ? 30 : 20;
 
 
 
@@ -236,6 +238,9 @@ function drawWave(layer, width, height, alphaMultiplier = 1) {
     ctx.fill();
 }
 
+// --- Grab buttons ---
+const buttons = document.querySelectorAll(".icon-button");
+
 // --- Main Draw Loop ---
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -248,6 +253,11 @@ function draw() {
         fadeFactor -= FADE_SPEED;
         if (fadeFactor < 0) fadeFactor = 0;
     }
+
+    // Show/hide buttons depending on waveform visibility
+    buttons.forEach(btn => {
+        btn.style.display = fadeFactor > 0 ? "none" : "flex";
+    });
 
     if (fadeFactor > 0) {
         layers.forEach(layer => drawWave(layer, canvas.width, canvas.height, fadeFactor));
