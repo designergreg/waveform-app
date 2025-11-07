@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%)
+    background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%);
   }
 
   #startBtn {
@@ -38,7 +38,7 @@
     cursor: pointer;
     border: none;
     border-radius: 10px;
-    background: white;
+    background: red;
     color: #1F465D;
   }
 
@@ -164,13 +164,17 @@ async function startMicPipeline() {
   micInitialized = true;
 
   try {
+    // Small delay ensures Safari triggers prompt correctly
+    await new Promise(r => setTimeout(r, 0));
+
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
     });
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaStreamSource(stream);
+    if(audioCtx.state === "suspended") await audioCtx.resume();
 
+    const source = audioCtx.createMediaStreamSource(stream);
     const gainNode = audioCtx.createGain();
     gainNode.gain.value = isMobile ? 14.0 : 1.0;
 
@@ -180,7 +184,6 @@ async function startMicPipeline() {
 
     source.connect(gainNode);
     gainNode.connect(analyser);
-
   } catch(err) {
     console.error("Mic error:", err);
     micInitialized = false;
@@ -289,20 +292,13 @@ startBtn.addEventListener("click", async ()=>{
   document.getElementById("startScreen").style.display="none";
   document.getElementById("agentScreen").style.display="block";
 
-  // Resume AudioContext
-  if(audioCtx && audioCtx.state==="suspended") await audioCtx.resume();
-
-  // Play video with fallback for autoplay policies
   const video = document.getElementById("bgVideo");
   video.muted = true;
   video.playsInline = true;
-  const playPromise = video.play();
-  if(playPromise !== undefined){
-    playPromise.catch(err=>{
-      console.warn("Video failed to autoplay:", err);
-      setTimeout(()=>video.play().catch(()=>{}), 100);
-    });
-  }
+  video.autoplay = true;
+
+  try { await video.play(); }
+  catch(err){ console.warn("Video play failed:", err); }
 
   resize();
   draw();
