@@ -67,6 +67,7 @@
     justify-content: center;
     z-index: 1;
     cursor: pointer;
+    transition: background 0.2s;
   }
 
   .icon-button img {
@@ -76,9 +77,9 @@
     filter: brightness(0) invert(1); /* white icon */
   }
 
-  /* --- Hover --- */
+  /* Hover */
   .icon-button:hover {
-      background: #1F4C7D;
+    background: #1F4C7D;
   }
 </style>
 </head>
@@ -125,9 +126,9 @@ const MIN_WAVE = isMobile ? 15 : 10;
 const RESPONSIVE_BOOST = isMobile ? 180 : 120;
 const VOICE_Y_SHIFT = isMobile ? 30 : 20;
 
-
-
-
+// RMS scaling for mobile sensitivity
+const RMS_MULTIPLIER = isMobile ? 15 : 5;
+const RMS_EXPONENT = isMobile ? 1.4 : 1.2;
 
 async function setupMic() {
     const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -150,10 +151,9 @@ async function setupMic() {
             sum += v * v;
         }
         let rawRMS = Math.sqrt(sum / buffer.length);
-
         if (rawRMS < 0.005) rawRMS = 0;
 
-        const scaledRMS = Math.pow(rawRMS * 5, 1.2);
+        const scaledRMS = Math.pow(rawRMS * RMS_MULTIPLIER, RMS_EXPONENT);
 
         const ATTACK = 0.8;
         const RELEASE = 0.05;
