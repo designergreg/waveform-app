@@ -88,13 +88,23 @@ function drawWave(layer,width,height,alphaMultiplier=1){
 const buttons = document.querySelectorAll(".icon-button");
 const actionbarText = document.querySelector(".actionbar-text");
 
+// ---------- NEW: set initial actionbar text based on platform ----------
+if (actionbarText) {
+  actionbarText.textContent = isMobile
+    ? "Press and hold screen to talk"
+    : "Hold spacebar to talk";
+}
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   fadeFactor = isTalking ? Math.min(fadeFactor+FADE_SPEED,1) : Math.max(fadeFactor-FADE_SPEED,0);
   buttons.forEach(btn=>{btn.style.display=fadeFactor>0?"none":"flex";});
+
+  // ---------- NEW: hide actionbar text when waveform is visible ----------
   if (actionbarText) {
     actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
   }
+
   if(fadeFactor>0) layers.forEach(layer=>drawWave(layer,canvas.width,canvas.height,fadeFactor));
   t+=1; requestAnimationFrame(draw);
 }
@@ -132,14 +142,25 @@ startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
 /* ---------- Touch Target Press & Hold ---------- */
+// ---------- UPDATED to change actionbar-text based on desktop/mobile ----------
 function startTalking(e){
   isTalking = true;
   if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
+  if (actionbarText) {
+    actionbarText.textContent = isMobile
+      ? "Release to send"
+      : "Release spacebar to send";
+  }
   e.preventDefault();
 }
 function stopTalking(e){
   isTalking = false;
   if(talkPrompt) talkPrompt.querySelector("div").textContent = "Press and hold screen to talk";
+  if (actionbarText) {
+    actionbarText.textContent = isMobile
+      ? "Press and hold screen to talk"
+      : "Hold spacebar to talk";
+  }
   e.preventDefault();
 }
 
