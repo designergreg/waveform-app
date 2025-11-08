@@ -98,11 +98,11 @@ canvas#wave {
   flex: 1;               /* text takes remaining space */
   min-width: 0;          /* allow shrinking and wrapping */
   color: white;
-  font-size: 14px;
+  font-size: 15px;
   font-family: Inter, sans-serif;
   font-weight: 400;
-  line-height: 19.6px;
-  letter-spacing: 0.25px;
+  line-height: 18px;
+  letter-spacing: 0.5px;
   text-align: center;
   white-space: normal;   /* allow wrapping */
   overflow-wrap: break-word;
