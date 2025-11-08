@@ -1,7 +1,11 @@
 /* ---------- Canvas ---------- */
 const canvas = document.getElementById("wave");
 const ctx = canvas.getContext("2d");
-function resize() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
+function resize() { 
+  canvas.width = canvas.clientWidth; 
+  canvas.height = canvas.clientHeight; 
+  resizeVideo(); // <-- update video size on window resize
+}
 window.addEventListener("resize", resize);
 
 /* ---------- Mobile detection ---------- */
@@ -95,12 +99,40 @@ if (actionbarText) {
     : "Hold spacebar to talk";
 }
 
+// ---------- NEW: Video resize function with centering ----------
+function resizeVideo() {
+  if (!video || !video.videoWidth || !video.videoHeight) return;
+  const windowW = window.innerWidth;
+  const windowH = window.innerHeight;
+  const videoW = video.videoWidth;
+  const videoH = video.videoHeight;
+
+  const windowRatio = windowW / windowH;
+  const videoRatio = videoW / videoH;
+
+  if (videoRatio >= windowRatio) {
+    // video is wider than window: fit height
+    video.style.height = `${windowH}px`;
+    video.style.width = 'auto';
+  } else {
+    // video narrower than window: fill screen (cover)
+    video.style.width = '100vw';
+    video.style.height = '100vh';
+  }
+
+  // center the video
+  video.style.position = 'absolute';
+  video.style.top = '50%';
+  video.style.left = '50%';
+  video.style.transform = 'translate(-50%, -50%)';
+}
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   fadeFactor = isTalking ? Math.min(fadeFactor+FADE_SPEED,1) : Math.max(fadeFactor-FADE_SPEED,0);
   buttons.forEach(btn=>{btn.style.display=fadeFactor>0?"none":"flex";});
 
-  // ---------- NEW: hide actionbar text when waveform is visible ----------
+  // hide actionbar text when waveform is visible
   if (actionbarText) {
     actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
   }
@@ -130,6 +162,9 @@ function startConvo() {
       await video.play().catch(()=>{});
 
       resize(); draw(); audioLoop();
+
+      // resize video when metadata is ready
+      video.addEventListener('loadedmetadata', resizeVideo);
     })
     .catch(err=>{
       console.error("Mic access failed:",err);
@@ -142,7 +177,6 @@ startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
 /* ---------- Touch Target Press & Hold ---------- */
-// ---------- UPDATED to change actionbar-text based on desktop/mobile ----------
 function startTalking(e){
   isTalking = true;
   if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
