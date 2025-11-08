@@ -117,3 +117,29 @@ canvas#wave {
 .icon-button:hover {
   background: #1F4C7D;
 }
+
+/* ---------- Talk Prompt ---------- */
+#talkPrompt {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.4);
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  transition: transform 0.25s ease; /* <--- scale tween */
+}
+
+
+#talkPrompt div {
+  color: white;
+  font-size: 16px;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  line-height: 22.4px;
+  letter-spacing: 0.25px;
+  text-align: center;
+}

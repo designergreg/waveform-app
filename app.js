@@ -57,10 +57,18 @@ const layers=[
 ];
 let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
 
-// Keyboard handling
+// Keyboard handling (desktop)
 ["keydown","keyup"].forEach(ev=>{
   window.addEventListener(ev,e=>{
-    if(e.code==="Space") isTalking=(ev==="keydown");
+    if(e.code === "Space") {
+      isTalking = (ev === "keydown");
+      if(talkPrompt) {
+        talkPrompt.querySelector("div").textContent = isTalking
+          ? "Release to send"
+          : "Press and hold screen to talk";
+      }
+      e.preventDefault(); // prevent scrolling when pressing space
+    }
   });
 });
 
@@ -91,6 +99,8 @@ const startBtn = document.getElementById("startBtn");
 const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
 const video = document.getElementById("bgVideo");
+const touchTarget = document.getElementById("touchTarget");
+const talkPrompt = document.getElementById("talkPrompt");
 
 function startConvo() {
   if(micInitialized) return;
@@ -116,26 +126,24 @@ function startConvo() {
 startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Touch Target for Press & Hold ---------- */
-const touchTarget = document.getElementById("touchTarget");
-
-function startTalkingTarget(e){
-  console.log("startTalking (touch target)");
+/* ---------- Touch Target Press & Hold ---------- */
+function startTalking(e){
   isTalking = true;
+  if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
   e.preventDefault();
 }
-function stopTalkingTarget(e){
-  console.log("stopTalking (touch target)");
+function stopTalking(e){
   isTalking = false;
+  if(talkPrompt) talkPrompt.querySelector("div").textContent = "Press and hold screen to talk";
   e.preventDefault();
 }
 
-// Desktop pointer events
-touchTarget.addEventListener("pointerdown", startTalkingTarget);
-touchTarget.addEventListener("pointerup", stopTalkingTarget);
-touchTarget.addEventListener("pointercancel", stopTalkingTarget);
+// Pointer events (desktop)
+touchTarget.addEventListener("pointerdown", startTalking);
+touchTarget.addEventListener("pointerup", stopTalking);
+touchTarget.addEventListener("pointercancel", stopTalking);
 
-// Mobile touch events
-touchTarget.addEventListener("touchstart", startTalkingTarget, {passive:false});
-touchTarget.addEventListener("touchend", stopTalkingTarget, {passive:false});
-touchTarget.addEventListener("touchcancel", stopTalkingTarget, {passive:false});
+// Touch events (mobile)
+touchTarget.addEventListener("touchstart", startTalking, {passive:false});
+touchTarget.addEventListener("touchend", stopTalking, {passive:false});
+touchTarget.addEventListener("touchcancel", stopTalking, {passive:false});
