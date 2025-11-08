@@ -79,23 +79,40 @@ canvas#wave {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100vw - 32px);     /* ✅ dynamic width */
-  max-width: 408px;              /* ✅ cap at 408px */
+  width: calc(100vw - 32px);
+  max-width: 408px;
   height: 60px;
   border-radius: 30px;
   background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* center everything */
   padding: 0 6px;
   overflow: hidden;
   z-index: 1;
   pointer-events: auto;
+  gap: 12px; /* ensures spacing between flex items */
+}
+
+.actionbar-text {
+  flex: 1;               /* text takes remaining space */
+  min-width: 0;          /* allow shrinking and wrapping */
+  color: white;
+  font-size: 14px;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  line-height: 19.6px;
+  letter-spacing: 0.25px;
+  text-align: center;
+  white-space: normal;   /* allow wrapping */
+  overflow-wrap: break-word;
 }
 
 .icon-button {
-  width: 48px;
-  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
   border-radius: 24px;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
@@ -121,7 +138,7 @@ canvas#wave {
 
 /* ---------- Talk Prompt ---------- */
 #talkPrompt {
-  display: inline-flex;
+  display: flex; /* block-level flex, not inline */
   justify-content: center;
   align-items: center;
   padding: 12px 20px;
@@ -131,9 +148,11 @@ canvas#wave {
   bottom: 88px;
   left: 50%;
   transform: translateX(-50%) scale(1);
-  transition: transform 0.25s ease; /* <--- scale tween */
+  transition: transform 0.25s ease;
+  max-width: calc(100vw - 32px); /* will only wrap if it exceeds this */
+  white-space: normal; /* allow wrapping */
+  box-sizing: border-box; /* include padding in max-width */
 }
-
 
 #talkPrompt div {
   color: white;
@@ -143,4 +162,6 @@ canvas#wave {
   line-height: 22.4px;
   letter-spacing: 0.25px;
   text-align: center;
+  white-space: normal; /* allow wrapping if necessary */
+  overflow-wrap: break-word;
 }

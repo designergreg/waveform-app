@@ -86,10 +86,15 @@ function drawWave(layer,width,height,alphaMultiplier=1){
 }
 
 const buttons = document.querySelectorAll(".icon-button");
+const actionbarText = document.querySelector(".actionbar-text");
+
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   fadeFactor = isTalking ? Math.min(fadeFactor+FADE_SPEED,1) : Math.max(fadeFactor-FADE_SPEED,0);
   buttons.forEach(btn=>{btn.style.display=fadeFactor>0?"none":"flex";});
+  if (actionbarText) {
+    actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
+  }
   if(fadeFactor>0) layers.forEach(layer=>drawWave(layer,canvas.width,canvas.height,fadeFactor));
   t+=1; requestAnimationFrame(draw);
 }
