@@ -13,8 +13,8 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 /* ---------- Audio ---------- */
 let micInitialized = false, smoothedRMS = 0, targetAmplitude = 0;
-const BASE_AMPLITUDE = isMobile ? 20 : 12,
-      MIN_WAVE = isMobile ? 15 : 10,
+const BASE_AMPLITUDE = isMobile ? 25 : 18,
+      MIN_WAVE = isMobile ? 25 : 18,
       RESPONSIVE_BOOST = isMobile ? 180 : 120,
       VOICE_Y_SHIFT = isMobile ? 30 : 20;
 const RMS_MULTIPLIER = isMobile ? 12 : 5,
@@ -76,9 +76,11 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
   });
 });
 
+const peaks = 3;
+
 function drawWave(layer,width,height,alphaMultiplier=1){
   ctx.beginPath(); ctx.moveTo(0,height);
-  const noiseScale=2/width, dynamicOffset=smoothedRMS*VOICE_Y_SHIFT, baseY=height*0.75-dynamicOffset;
+  const noiseScale=peaks/width, dynamicOffset=smoothedRMS*VOICE_Y_SHIFT, baseY=height*0.75-dynamicOffset;
   for(let x=0;x<width;x++){
     const n=noise.get((x+layer.xShift)*noiseScale+t*0.004);
     ctx.lineTo(x, baseY - n*0.5*targetAmplitude);
