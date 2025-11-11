@@ -136,6 +136,23 @@ canvas#wave {
   background: #1F4C7D;
 }
 
+/* ---------- On Hold ---------- */
+#onHoldScrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4); /* 40% black */
+  z-index: 0.75; /* above video (-2), below talkPrompt (?), below actionbar (1) */
+  display: none;
+}
+
+/* Pause button selected state */
+.icon-button.on-hold {
+  background: #1F4C7D !important;
+}
+
 /* ---------- Talk Prompt ---------- */
 #talkPrompt {
   display: flex; /* block-level flex, not inline */
