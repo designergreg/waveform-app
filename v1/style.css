@@ -1,0 +1,167 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#startScreen, #agentScreen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#startScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%);
+}
+
+#startBtn {
+  padding: 20px 40px;
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: white;
+  color: #1F465D;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#agentScreen {
+  display: none;
+}
+
+#bgVideo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+}
+
+#touchTarget {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0.5; /* above video (-2) but below actionbar (1) */
+  background: transparent;
+  touch-action: none; /* allow preventing default for touch */
+}
+
+canvas#wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.actionbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);
+  max-width: 408px;
+  height: 60px;
+  border-radius: 30px;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center everything */
+  padding: 0 6px;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: auto;
+  gap: 12px; /* ensures spacing between flex items */
+}
+
+.actionbar-text {
+  flex: 1;               /* text takes remaining space */
+  min-width: 0;          /* allow shrinking and wrapping */
+  color: white;
+  font-size: 15px;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: normal;   /* allow wrapping */
+  overflow-wrap: break-word;
+}
+
+.icon-button {
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.icon-button img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.icon-button:hover {
+  background: #1F4C7D;
+}
+
+/* ---------- Talk Prompt ---------- */
+#talkPrompt {
+  display: flex; /* block-level flex, not inline */
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.4);
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  transition: transform 0.25s ease;
+  max-width: calc(100vw - 32px); /* will only wrap if it exceeds this */
+  white-space: normal; /* allow wrapping */
+  box-sizing: border-box; /* include padding in max-width */
+}
+
+#talkPrompt div {
+  color: white;
+  font-size: 16px;
+  font-family: Inter, sans-serif;
+  font-weight: 500;
+  line-height: 22.4px;
+  letter-spacing: 0.25px;
+  text-align: center;
+  white-space: normal; /* allow wrapping if necessary */
+  overflow-wrap: break-word;
+}
