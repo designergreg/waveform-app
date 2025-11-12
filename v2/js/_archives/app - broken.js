@@ -1,15 +1,15 @@
 /* ---------- Canvas ---------- */
 const canvas = document.getElementById("wave");
 const ctx = canvas.getContext("2d");
-function resize() { 
-  canvas.width = canvas.clientWidth; 
-  canvas.height = canvas.clientHeight; 
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
   resizeVideo(); // <-- update video size on window resize
 }
 window.addEventListener("resize", resize);
 
 /* ---------- Mobile detection ---------- */
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+export const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 /* ---------- Audio ---------- */
 let micInitialized = false, smoothedRMS = 0, targetAmplitude = 0;
@@ -22,7 +22,7 @@ const RMS_MULTIPLIER = isMobile ? 12 : 5,
 
 let audioCtx = null, analyser = null, buffer = null;
 
-async function initAudio(stream){
+export async function initAudio(stream){
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if(audioCtx.state==="suspended") await audioCtx.resume();
 
@@ -39,7 +39,7 @@ async function initAudio(stream){
 }
 
 /* ---------- Audio Loop ---------- */
-function audioLoop(){
+export function audioLoop(){
   if(!analyser||!buffer){requestAnimationFrame(audioLoop);return;}
   analyser.getByteTimeDomainData(buffer);
   let sum=0;
@@ -59,22 +59,16 @@ const layers=[
   {color:'#5A8696',alpha:0.6,xShift:0},{color:'#CD568A',alpha:0.6,xShift:80},
   {color:'#9E6FA8',alpha:0.6,xShift:160},{color:'#0D4CAC',alpha:0.7,xShift:240}
 ];
-let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
 
-// Keyboard handling (desktop)
-["keydown","keyup"].forEach(ev=>{
-  window.addEventListener(ev,e=>{
-    if(e.code === "Space") {
-      isTalking = (ev === "keydown");
-      if(talkPrompt) {
-        talkPrompt.querySelector("div").textContent = isTalking
-          ? "Release to send"
-          : "Press and hold screen to talk";
-      }
-      e.preventDefault(); // prevent scrolling when pressing space
-    }
-  });
-});
+let t=0;
+let isTalking = false; // kept internal; ptt.js will toggle via setTalking()
+let fadeFactor=1, FADE_SPEED=0.05;
+
+/* export setter so ptt.js can change this state */
+export function setTalking(val){
+  isTalking = !!val;
+}
+export function getTalking(){ return isTalking; } // optional getter if needed
 
 const peaks = 3;
 
@@ -92,8 +86,18 @@ function drawWave(layer,width,height,alphaMultiplier=1){
 }
 
 const buttons = document.querySelectorAll(".icon-button");
+export const actionbarText = document.querySelector(".actionbar-text");
 
-// ---------- NEW: Video resize function with centering ----------
+/* ---------- NEW: set initial actionbar text based on platform ----------
+   (left exactly as in your original) */
+if (actionbarText) {
+  actionbarText.textContent = isMobile
+    ? "Press and hold screen to talk"
+    : "Hold spacebar to talk";
+}
+
+/* ---------- NEW: Video resize function with centering ---------- */
+export const video = document.getElementById("bgVideo");
 function resizeVideo() {
   if (!video || !video.videoWidth || !video.videoHeight) return;
   const windowW = window.innerWidth;
@@ -139,18 +143,10 @@ function draw(){
 const startBtn = document.getElementById("startBtn");
 const startScreen = document.getElementById("startScreen");
 const agentScreen = document.getElementById("agentScreen");
-const video = document.getElementById("bgVideo");
-const touchTarget = document.getElementById("touchTarget");
-const talkPrompt = document.getElementById("talkPrompt");
+export const touchTarget = document.getElementById("touchTarget");
+export const talkPrompt = document.getElementById("talkPrompt");
 
-// ---------- NEW: set initial actionbar text based on platform ----------
-if (talkPrompt) {
-  talkPrompt.querySelector("div").textContent = isMobile
-    ? "Press and hold screen to talk"
-    : "Hold spacebar to talk";
-}
-
-function startConvo() {
+export function startConvo() {
   if(micInitialized) return;
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
     .then(async stream=>{
@@ -177,28 +173,7 @@ function startConvo() {
 startBtn.addEventListener("click", startConvo);
 startBtn.addEventListener("touchend", startConvo);
 
-/* ---------- Touch Target Press & Hold ---------- */
-function startTalking(e){
-  isTalking = true;
-  if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
-  e.preventDefault();
-}
-function stopTalking(e){
-  isTalking = false;
-  if (talkPrompt) {
-    talkPrompt.querySelector("div").textContent = isMobile
-      ? "Press and hold screen to talk"
-      : "Hold spacebar to talk";
-  }
-  e.preventDefault();
-}
-
-// Pointer events (desktop)
-touchTarget.addEventListener("pointerdown", startTalking);
-touchTarget.addEventListener("pointerup", stopTalking);
-touchTarget.addEventListener("pointercancel", stopTalking);
-
-// Touch events (mobile)
-touchTarget.addEventListener("touchstart", startTalking, {passive:false});
-touchTarget.addEventListener("touchend", stopTalking, {passive:false});
-touchTarget.addEventListener("touchcancel", stopTalking, {passive:false});
+/* ---------- NOTE ----------
+   All press-and-hold / keyboard handlers were intentionally REMOVED from this file
+   because they live in ptt.js now and use setTalking(...) to toggle isTalking.
+*/

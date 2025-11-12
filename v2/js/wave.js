@@ -12,7 +12,7 @@ window.addEventListener("resize", resize);
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 /* ---------- Audio ---------- */
-let micInitialized = false, smoothedRMS = 0, targetAmplitude = 0;
+let smoothedRMS = 0, targetAmplitude = 0;
 const BASE_AMPLITUDE = isMobile ? 25 : 18,
       MIN_WAVE = isMobile ? 25 : 18,
       RESPONSIVE_BOOST = isMobile ? 180 : 120,
@@ -28,7 +28,7 @@ async function initAudio(stream){
 
   const source = audioCtx.createMediaStreamSource(stream);
   const gainNode = audioCtx.createGain();
-  gainNode.gain.value = isMobile?14:1;
+  gainNode.gain.value = isMobile ? 14 : 1;
 
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 512;
@@ -69,7 +69,9 @@ let t=0,isTalking=false,fadeFactor=1,FADE_SPEED=0.05;
       if(talkPrompt) {
         talkPrompt.querySelector("div").textContent = isTalking
           ? "Release to send"
-          : "Press and hold screen to talk";
+          : isMobile
+            ? "Press and hold screen to talk"
+            : "Hold spacebar to talk";
       }
       e.preventDefault(); // prevent scrolling when pressing space
     }
@@ -93,91 +95,27 @@ function drawWave(layer,width,height,alphaMultiplier=1){
 
 const buttons = document.querySelectorAll(".icon-button");
 
-// ---------- NEW: Video resize function with centering ----------
-function resizeVideo() {
-  if (!video || !video.videoWidth || !video.videoHeight) return;
-  const windowW = window.innerWidth;
-  const windowH = window.innerHeight;
-  const videoW = video.videoWidth;
-  const videoH = video.videoHeight;
-
-  const windowRatio = windowW / windowH;
-  const videoRatio = videoW / videoH;
-
-  if (videoRatio >= windowRatio) {
-    // video is wider than window: fit height
-    video.style.height = `${windowH}px`;
-    video.style.width = 'auto';
-  } else {
-    // video narrower than window: fill screen (cover)
-    video.style.width = '100vw';
-    video.style.height = '100vh';
-  }
-
-  // center the video
-  video.style.position = 'absolute';
-  video.style.top = '50%';
-  video.style.left = '50%';
-  video.style.transform = 'translate(-50%, -50%)';
-}
-
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   fadeFactor = isTalking ? Math.min(fadeFactor+FADE_SPEED,1) : Math.max(fadeFactor-FADE_SPEED,0);
   buttons.forEach(btn=>{btn.style.display=fadeFactor>0?"none":"flex";});
 
-  // hide actionbar text when waveform is visible
-  if (actionbarText) {
-    actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
-  }
-
   if(fadeFactor>0) layers.forEach(layer=>drawWave(layer,canvas.width,canvas.height,fadeFactor));
   t+=1; requestAnimationFrame(draw);
 }
 
-/* ---------- Start Button ---------- */
-const startBtn = document.getElementById("startBtn");
-const startScreen = document.getElementById("startScreen");
-const agentScreen = document.getElementById("agentScreen");
-const video = document.getElementById("bgVideo");
+/* ---------- Talk Interaction ---------- */
 const touchTarget = document.getElementById("touchTarget");
 const talkPrompt = document.getElementById("talkPrompt");
+const video = document.getElementById("bgVideo");
 
-// ---------- NEW: set initial actionbar text based on platform ----------
+// Set initial prompt text based on platform
 if (talkPrompt) {
   talkPrompt.querySelector("div").textContent = isMobile
     ? "Press and hold screen to talk"
     : "Hold spacebar to talk";
 }
 
-function startConvo() {
-  if(micInitialized) return;
-  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
-    .then(async stream=>{
-      micInitialized=true;
-      await initAudio(stream);
-      startScreen.style.display="none";
-      agentScreen.style.display="block";
-
-      video.muted=true; video.playsInline=true;
-      await video.play().catch(()=>{});
-
-      resize(); draw(); audioLoop();
-
-      // resize video when metadata is ready
-      video.addEventListener('loadedmetadata', resizeVideo);
-    })
-    .catch(err=>{
-      console.error("Mic access failed:",err);
-      alert("Mic access is required to continue.");
-    });
-}
-
-// Start button events
-startBtn.addEventListener("click", startConvo);
-startBtn.addEventListener("touchend", startConvo);
-
-/* ---------- Touch Target Press & Hold ---------- */
 function startTalking(e){
   isTalking = true;
   if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
@@ -202,3 +140,18 @@ touchTarget.addEventListener("pointercancel", stopTalking);
 touchTarget.addEventListener("touchstart", startTalking, {passive:false});
 touchTarget.addEventListener("touchend", stopTalking, {passive:false});
 touchTarget.addEventListener("touchcancel", stopTalking, {passive:false});
+
+/* ---------- Mic Ready Event ---------- */
+document.addEventListener("mic:ready", async (e) => {
+  const { stream } = e.detail;
+
+  await initAudio(stream);
+
+  resize();
+  draw();
+  audioLoop();
+
+  if (video) {
+    video.addEventListener("loadedmetadata", resizeVideo);
+  }
+});
