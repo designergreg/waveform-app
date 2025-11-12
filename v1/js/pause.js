@@ -3,10 +3,6 @@ const pauseBtn = document.getElementById("pauseBtn");
 const scrim = document.getElementById("onHoldScrim");
 const pauseIcon = pauseBtn?.querySelector("img");
 
-// Diagnostic logs — optional
-pauseBtn?.addEventListener('pointerdown', () => console.log('pause pointerdown'));
-pauseBtn?.addEventListener('click', () => console.log('pause click fired'));
-
 // Query what we need locally in this file
 const actionbarTextEl = document.querySelector(".actionbar-text");
 const talkPromptEl = document.getElementById("talkPrompt");

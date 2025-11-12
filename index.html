@@ -2,35 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Video Agent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prototypes</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(315deg, #00596E 0%, #0D4CAC 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      gap: 12px;
+      color: white;
+    }
+
+    .content {
+      width: 310px;
+    }
+
+    .title {
+      align-self: stretch;
+      padding-bottom: 20px;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 35px;
+    }
+
+    .prototype-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px; /* optional spacing between items */
+    }
+
+    .prototype-item {
+      align-self: stretch;
+      max-height: 48px;
+      padding: 12px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #FBFBFB;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 21px;
+      letter-spacing: 0.25px;
+      text-decoration: none; /* remove underline from links */
+    }
+
+    /* Optional: Add hover effect for clarity */
+    .prototype-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-
-<div id="startScreen">
-  <button id="startBtn">Start Conversation</button>
-</div>
-
-<div id="agentScreen" style="display:none;">
-  <video id="bgVideo" src="therapist_silent_30.mp4" autoplay loop muted playsinline></video>
-
-  <!-- Fullscreen invisible touch target -->
-  <div id="touchTarget"></div>
-
-  <!-- Prompt above action bar -->
-  <!-- <div id="talkPrompt">
-    <div>Press and hold screen to talk</div>
-  </div> -->
-
-  <div class="actionbar">
-    <canvas id="wave"></canvas>
-    <div class="icon-button"><img src="icons/linear/pause.svg" alt="Pause"></div>
-    <div class="actionbar-text">Press and hold screen to talk</div>
-    <div class="icon-button"><img src="icons/linear/more.svg" alt="More"></div>
+  <div class="content">
+    <div class="title">Prototypes</div>
+    <div class="prototype-list">
+      <a class="prototype-item" href="v1/index.html">V1 - Prompt In Action Bar</a>
+      <a class="prototype-item" href="v2/index.html">V2 - Prompt Above Action Bar</a>
+    </div>
   </div>
-</div>
-
-<script src="app.js"></script>
 </body>
 </html>
