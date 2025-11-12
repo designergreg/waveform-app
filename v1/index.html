@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Video Agent</title>
+  <title>V1 - Prompt in Actionbar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -20,19 +21,96 @@
 
   <div id="onHoldScrim"></div> 
 
-  <!-- Prompt above action bar -->
-  <!-- <div id="talkPrompt">
-    <div>Press and hold screen to talk</div>
-  </div> -->
+  <!-- Prompt above action bar -->  <!-- SAVE THIS FOR OPEN MIC -->
+  <div id="talkPrompt">
+    <div></div>
+  </div>
 
+
+  <!-- Prompt in action bar -->
   <div class="actionbar">
     <canvas id="wave"></canvas>
     <div class="icon-button" id="pauseBtn"><img src="../icons/linear/pause.svg" alt="Pause"></div>
     <div class="actionbar-text">Press and hold screen to talk</div>
-    <div class="icon-button"><img src="../icons/linear/more.svg" alt="More"></div>
+    <div class="icon-button" id="moreBtn"><img src="../icons/linear/more.svg" alt="More"></div>
+  </div>
+
+  <div id="moreMenu">
+    <div class="more-menu-container">
+      <div class="more-menu-content">
+
+        <!-- Group A -->
+        <div class="more-group">
+
+          <div class="more-item-row">
+            <div class="more-item">
+              <div class="icon-list-item">
+                <img src="../icons/linear/feedback.svg" alt="Share Feedback">
+              </div>
+              <div class="more-label">Share Feedback</div>
+            </div>
+          </div>
+
+          <div class="more-item-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/audio_on.svg" alt="Speakers">
+              </div>
+              <div class="more-label">Speakers</div>
+            </div>
+            <div class="more-value">AirPods</div>
+          </div>
+
+          <div class="more-item-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/global.svg" alt="Language">
+              </div>
+              <div class="more-label">Language</div>
+            </div>
+            <div class="more-value">English</div>
+          </div>
+
+          <div class="more-item-row ptt-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/microphone.svg" alt="Push-to-talk">
+              </div>
+              <div class="more-label">Push-to-talk</div>
+            </div>
+
+            <!-- Toggle Switch -->
+            <div class="toggle-switch" data-toggle="On">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Divider -->
+        <div class="more-divider"></div>
+
+        <!-- Group B -->
+        <div class="more-group">
+          <div class="more-item-row">
+            <div class="more-item">
+              <div class="icon-list-item">
+                <img src="../icons/linear/call_slash.svg" alt="End Call">
+              </div>
+              <div class="more-label">End Call</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="js/mic-permissions.js"></script>
+<script src="js/wave.js"></script>
+<script src="js/video.js"></script>
+<script src="js/pause.js"></script>
+<script src="js/more.js"></script>
 </body>
 </html>

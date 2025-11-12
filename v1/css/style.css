@@ -1,0 +1,360 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#startScreen, #agentScreen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#startScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%);
+}
+
+#startBtn {
+  padding: 20px 40px;
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: white;
+  color: #1F465D;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#agentScreen {
+  display: none;
+}
+
+#bgVideo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+}
+
+#touchTarget {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0.5; /* above video (-2) but below actionbar (1) */
+  background: transparent;
+  touch-action: none; /* allow preventing default for touch */
+}
+
+canvas#wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.actionbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);     /* ✅ dynamic width */
+  max-width: 408px;              /* ✅ cap at 408px */
+  height: 60px;
+  border-radius: 30px;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.actionbar-text {
+  flex: 1;               /* text takes remaining space */
+  min-width: 0;          /* allow shrinking and wrapping */
+  color: white;
+  font-size: 15px;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: normal;   /* allow wrapping */
+  overflow-wrap: break-word;
+}
+
+.icon-button {
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.icon-button img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.icon-button:hover {
+  background: #1F4C7D;
+}
+
+/* ---------- On Hold ---------- */
+#onHoldScrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4); /* 40% black */
+  z-index: 0.75; /* above video (-2), below talkPrompt (?), below actionbar (1) */
+  display: none;
+}
+
+/* Pause button selected state */
+.icon-button.on-hold {
+  background: #1F4C7D !important;
+}
+
+
+/* ---------- More Menu ---------- */
+/* --- Overall Container Positioning --- */
+#moreMenu {
+  display: none;
+  position: fixed;
+  z-index: 5;
+
+  bottom: calc(60px + 20px + 4px);
+  right: calc(50vw - (min(408px, calc(100vw - 32px)) / 2) + 6px);
+
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#moreMenu.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Glass Panel --- */
+.more-menu-container {
+  box-sizing: border-box;
+  width: 276px;
+  padding: 16px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Let content fill the padded area (276 - 24 = 252) */
+.more-menu-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Row fills the 252px area; padding stays inside that width */
+.more-item-row {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;   /* was space-between */
+  gap: 8px;                      /* adds spacing between left & right */
+  padding: 0 8px;                /* row’s own left/right padding */
+}
+/* Base hover effect for all rows */
+.more-item-row:hover {
+  background: #1F4C7D;
+  cursor: pointer;
+}
+
+/* EXCEPTION: do not highlight the Push-to-talk row */
+.more-item-row.ptt-row:hover {
+  background: none;
+  cursor: default;
+}
+
+
+/* Label on left */
+.more-label {
+  font-size: 15px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0.25px;
+  color: #FBFBFB;
+  white-space: nowrap;
+
+  display: flex;
+  align-items: center;
+}
+
+/* Right-side subtitles: AirPods / English */
+.more-value {
+  display: flex;
+  align-items: center;       /* vertically center text */
+
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 13px;
+  font-family: Inter;
+  font-weight: 600;
+  line-height: 18.2px;
+  letter-spacing: 0.25px;
+  white-space: nowrap;
+}
+
+/* Keep item flex behavior as-is */
+.more-item {
+  flex: 1 1 auto;                /* left group grows, but padding now visible */
+  min-width: 0;                  /* allows text to shrink/ellipsis if needed */
+  padding-left: 4px;             /* your inner padding now shows */
+  padding-right: 8px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Divider should match content width */
+.more-divider {
+  height: 1px;
+  background: #303334;
+  width: 100%;
+  margin: 8px 0;
+}
+
+
+/* Toggle Switch */
+.toggle-switch {
+  flex: 0 0 44px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  position: relative;
+  background: #1F4C7D;
+  border-radius: 999px;
+  outline-offset: -1px;
+  overflow: hidden;
+}
+
+/* Small bug: missing unit */
+.toggle-knob {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  left: 23px;
+  top: 3px; /* <-- add px */
+  background: white;
+  border-radius: 1000px;
+}
+
+/* Icon wrapper: ensure it's not mis-aligned by image size */
+.icon-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+}
+
+/* Icon sizing */
+.icon-list-item img {
+  height: 24px;
+  width: 24px;
+  display: block;
+}
+
+
+
+/* ---------- Talk Prompt (fix sizing/wrapping) ---------- */
+#talkPrompt {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%) scale(1);
+
+  display: inline-flex;       /* shrink to content width */
+  align-items: center;
+  justify-content: center;
+
+  /* Size to natural text width, but clamp it */
+  width: -moz-max-content;
+  width: -webkit-max-content;
+  width: max-content;         /* natural (unwrapped) width */
+  max-width: min(408px, calc(100vw - 32px));
+
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.4);
+  box-sizing: border-box;
+  transition: transform 0.25s ease;
+}
+
+/* Let the text wrap ONLY when the container hits its max-width */
+#talkPrompt > div {
+  color: #fff;
+  font: 500 16px/22.4px Inter, sans-serif;
+  letter-spacing: 0.25px;
+  text-align: center;
+
+  white-space: normal;        /* allow wrapping if needed */
+  overflow-wrap: normal;      /* avoid early break-word forcing */
+  word-break: normal;
+}
+
+
+
+@media (hover: hover) and (pointer: fine) {
+  .more-item-row:hover {
+    background: #1F4C7D;
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    background: #1F4C7D;
+  }
+}
