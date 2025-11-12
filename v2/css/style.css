@@ -269,11 +269,11 @@ canvas#wave {
 
 /* Small bug: missing unit */
 .toggle-knob {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   position: absolute;
-  left: 22px;
-  top: 2px; /* <-- add px */
+  left: 23px;
+  top: 3px; /* <-- add px */
   background: white;
   border-radius: 1000px;
 }
@@ -283,14 +283,14 @@ canvas#wave {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
 }
 
 /* Icon sizing */
 .icon-list-item img {
-  width: 20px;
-  height: 20px;
+  height: 24px;
+  width: 24px;
   display: block;
 }
 
