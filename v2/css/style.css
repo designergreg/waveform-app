@@ -325,3 +325,15 @@ canvas#wave {
   white-space: normal; /* allow wrapping if necessary */
   overflow-wrap: break-word;
 }
+
+
+@media (hover: hover) and (pointer: fine) {
+  .more-item-row:hover {
+    background: #1F4C7D;
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    background: #1F4C7D;
+  }
+}
