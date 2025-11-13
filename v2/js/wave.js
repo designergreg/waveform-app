@@ -761,6 +761,38 @@ if (touchTarget) {
   });
 }
 
+/* ============================================================
+ * MOBILE: TAP TO BRING BACK ACTIONBAR (PTT OFF)
+ * ============================================================ */
+
+if (touchTarget) {
+  touchTarget.addEventListener(
+    "touchstart",
+    (e) => {
+      // Only care in open-mic mode (PTT OFF)
+      if (window.isPTTOn) return;
+
+      const actionbar = document.querySelector(".actionbar");
+      if (!actionbar) return;
+
+      // If the bar is currently hidden, show it again
+      const style  = getComputedStyle(actionbar);
+      const hidden =
+        style.opacity === "0" || style.pointerEvents === "none";
+
+      if (hidden) {
+        actionbar.style.opacity = "1";
+        actionbar.style.pointerEvents = "auto";
+      }
+
+      // Let your existing PTT logic still run if needed,
+      // but we prevent default to avoid weird scroll/zoom.
+      e.preventDefault();
+    },
+    { passive: false }
+  );
+}
+
 
 /* ============================================================
  * MIC READY EVENT (BOOTSTRAP AUDIO + DRAWING)
