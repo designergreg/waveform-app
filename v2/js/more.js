@@ -8,7 +8,7 @@
    *  - Temporarily hide the floating talk prompt while menu is open
    *  - Restore the prompt when closed (for hold + mute cases)
    *  - Toggle PTT state + UI + prompt routing
-   *  - Nudge the actionbar auto-hide timer when PTT changes
+   *  - Nudge actionbar auto-hide when relevant
    * ============================================================ */
 
   const moreBtn      = document.getElementById("moreBtn");
@@ -35,9 +35,9 @@
   function shouldRestorePrompt() {
     if (!wasPromptVisible) return false;
 
-    const pttOn  = window.isPTTOn !== false; // default true if undefined
-    const pttOff = !pttOn;
-    const muted  = !!window.isMicMuted;
+    const pttOn   = window.isPTTOn !== false;   // default true if undefined
+    const pttOff  = !pttOn;
+    const muted   = !!window.isMicMuted;
 
     // Restore if:
     //  - still on hold, OR
@@ -46,13 +46,6 @@
     if (pttOff && muted) return true;
 
     return false;
-  }
-
-  // Convenience: kick the actionbar inactivity timer if available
-  function bumpActionbarTimer() {
-    if (typeof window.resetActionbarInactivity === "function") {
-      window.resetActionbarInactivity();
-    }
   }
 
   /* ------------------------------------------------------------
@@ -82,9 +75,6 @@
     if (touchTarget) {
       touchTarget.style.pointerEvents = "none";
     }
-
-    // Opening the menu counts as activity on the actionbar
-    bumpActionbarTimer();
   }
 
   function closeMenu() {
@@ -113,8 +103,11 @@
         : "none";
     }
 
-    // Closing the menu also counts as activity
-    bumpActionbarTimer();
+    // 🔁 Menu just closed — if PTT is OFF and no buttons are active,
+    // let wave.js decide whether to start the 7s auto-hide timer.
+    if (typeof window.refreshActionbarAutoHide === "function") {
+      window.refreshActionbarAutoHide();
+    }
   }
 
   /* ------------------------------------------------------------
@@ -204,9 +197,11 @@
         window.updatePromptMode();
       }
 
-      // PTT change counts as activity; also needed to start
-      // the auto-hide timer when we first switch PTT OFF.
-      bumpActionbarTimer();
+      // 🔁 Whenever PTT changes, let wave.js reconsider auto-hide
+      // (it will only actually start the timer if PTT is OFF and no buttons are active)
+      if (typeof window.refreshActionbarAutoHide === "function") {
+        window.refreshActionbarAutoHide();
+      }
     });
   }
 

@@ -304,8 +304,8 @@ canvas#wave {
 
 /* Track */
 .toggle-switch {
-  flex: 0 0 44px;
-  height: 24px;
+  flex: 0 0 48px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -321,14 +321,15 @@ canvas#wave {
 
 /* Knob (ON position by default → right side) */
 .toggle-knob {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   position: absolute;
-  left: 23px;            /* ON = right side */
-  top: 3px;
+  left: 24px;            /* ON = right side */
+  top: 4px;
   background: white;
   border-radius: 1000px;
   transition: left 0.15s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* OFF state track color */
@@ -338,7 +339,7 @@ canvas#wave {
 
 /* OFF state: knob slides to left */
 .toggle-switch.off .toggle-knob {
-  left: 3px;             /* OFF = left side */
+  left: 4px;             /* OFF = left side */
 }
 
 
