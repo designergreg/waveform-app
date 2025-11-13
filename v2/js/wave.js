@@ -43,6 +43,7 @@ const talkPromptTextEl = talkPromptEl?.querySelector("div");
 
 // Global PTT state (true = ON = use actionbar-text)
 window.isPTTOn = true;
+let lastPTTState = window.isPTTOn; // track transitions
 
 // Store the current prompt string so we can re-render when mode switches
 window.currentPromptText = "";
@@ -336,8 +337,7 @@ function isAnyActionbarButtonActive() {
   const more  = document.getElementById("moreBtn");
 
   const pauseActive = pause && pause.classList.contains("on-hold");
-  const muteActive  =
-    (mute && mute.classList.contains("muted")) || !!window.isMicMuted;
+  const muteActive  = mute && mute.classList.contains("muted");
   const moreActive  = more && more.classList.contains("more-open");
 
   return !!(pauseActive || muteActive || moreActive);
@@ -356,15 +356,20 @@ function scheduleAutoHide() {
   // Only auto-hide when:
   //  - PTT is OFF
   //  - no buttons are active
-  //  - not on hold
-  if (window.isPTTOn || isAnyActionbarButtonActive() || isOnHold) {
+  if (window.isPTTOn || isAnyActionbarButtonActive()) {
     if (actionbarHideTimer) {
       clearTimeout(actionbarHideTimer);
       actionbarHideTimer = null;
     }
+    // If we just turned PTT ON while hidden, bring the bar back
+    if (window.isPTTOn && !actionbarVisible) {
+      actionbarVisible = true;
+      applyActionbarVisibility();
+    }
     return;
   }
 
+  // Clear + restart timer
   if (actionbarHideTimer) {
     clearTimeout(actionbarHideTimer);
     actionbarHideTimer = null;
@@ -372,7 +377,7 @@ function scheduleAutoHide() {
 
   actionbarHideTimer = setTimeout(() => {
     // Re-check conditions at fire time
-    if (!window.isPTTOn && !isAnyActionbarButtonActive() && !isOnHold && actionbarVisible) {
+    if (!window.isPTTOn && !isAnyActionbarButtonActive() && actionbarVisible) {
       actionbarVisible = false;
       applyActionbarVisibility();
     }
@@ -381,23 +386,7 @@ function scheduleAutoHide() {
 }
 
 // Public helpers for other scripts (pause.js, mute.js, more.js)
-window.refreshActionbarAutoHide = function () {
-  if (window.isPTTOn) {
-    // PTT ON → ensure bar visible and cancel any auto-hide
-    actionbarVisible = true;
-    applyActionbarVisibility();
-    if (actionbarHideTimer) {
-      clearTimeout(actionbarHideTimer);
-      actionbarHideTimer = null;
-    }
-    return;
-  }
-
-  // PTT OFF → ensure visible, then (re)schedule auto-hide if allowed
-  actionbarVisible = true;
-  applyActionbarVisibility();
-  scheduleAutoHide();
-};
+window.refreshActionbarAutoHide = scheduleAutoHide;
 
 window.showActionbar = function () {
   actionbarVisible = true;
@@ -431,11 +420,6 @@ function setOnHold(state) {
       stopTalking(new Event("hold"));
     }
     fadeFactor = 0; // snap hide the wave if it was up
-  }
-
-  // Whenever hold changes, reconsider auto-hide rules
-  if (typeof window.refreshActionbarAutoHide === "function") {
-    window.refreshActionbarAutoHide();
   }
 }
 
@@ -585,6 +569,23 @@ function draw(ts = performance.now()) {
   const dt = Math.min(32, ts - lastTs);
   lastTs   = ts;
 
+  /* --- Detect PTT transitions to kick auto-hide on first OFF --- */
+  if (window.isPTTOn !== lastPTTState) {
+    // Just switched from ON → OFF
+    if (!window.isPTTOn) {
+      scheduleAutoHide();
+    } else {
+      // OFF → ON: ensure bar visible & cancel hide
+      actionbarVisible = true;
+      applyActionbarVisibility();
+      if (actionbarHideTimer) {
+        clearTimeout(actionbarHideTimer);
+        actionbarHideTimer = null;
+      }
+    }
+    lastPTTState = window.isPTTOn;
+  }
+
   /* --- Engagement with hysteresis + delayed cool-down --- */
   const now          = ts;
   const targetEngage = Math.min(1, smoothedRMS * 1.4);
@@ -703,7 +704,7 @@ function draw(ts = performance.now()) {
 
 
 /* ============================================================
- * TOUCH / POINTER PTT + ACTIONBAR TAP-TO-TOGGLE (PTT OFF)
+ * TOUCH / POINTER PTT + ACTIONBAR TAP-TOGGLE (PTT OFF)
  * ============================================================ */
 
 const touchTarget = document.getElementById("touchTarget");
@@ -715,8 +716,8 @@ if (talkPrompt) {
 }
 
 function startTalking(e) {
-  // In open-mic mode (PTT OFF), PTT is disabled;
-  // taps are handled in pointerup/touchend as a toggle.
+  // In open-mic mode (PTT OFF), we do NOT do PTT here;
+  // taps will be used for toggling via click handler.
   if (!window.isPTTOn) return;
 
   if (isOnHold) {
@@ -736,7 +737,7 @@ function startTalking(e) {
 }
 
 function stopTalking(e) {
-  // In open-mic mode, we don't do PTT stop here
+  // In open-mic mode, no-op for PTT
   if (!window.isPTTOn) return;
 
   isTalking = false;
@@ -753,8 +754,8 @@ function stopTalking(e) {
 
 // Tap-to-toggle for actionbar visibility when PTT is OFF
 function handleScreenTapToggle() {
-  // Only in PTT OFF mode and not on hold
-  if (window.isPTTOn || isOnHold || !actionbar) return;
+  // Only in PTT OFF mode
+  if (window.isPTTOn) return;
 
   if (actionbarVisible) {
     window.hideActionbar();
@@ -774,18 +775,15 @@ if (touchTarget) {
   touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
   touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
 
-  // Tap-to-toggle actionbar when PTT is OFF
-  touchTarget.addEventListener("pointerup", (e) => {
-    if (!window.isPTTOn) {
-      handleScreenTapToggle();
-    }
-  });
+  // Use click (desktop + mobile) for toggle when PTT is OFF
+  touchTarget.addEventListener("click", (e) => {
+    // Don’t toggle if:
+    //  - PTT is ON (press-and-hold mode)
+    //  - or we’re on hold
+    if (window.isPTTOn || isOnHold) return;
 
-  touchTarget.addEventListener("touchend", () => {
-    if (!window.isPTTOn) {
-      handleScreenTapToggle();
-    }
-  }, { passive: true });
+    handleScreenTapToggle();
+  });
 }
 
 
