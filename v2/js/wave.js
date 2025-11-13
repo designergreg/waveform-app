@@ -447,35 +447,35 @@ function applyActionbarVisibility() {
 
 // Schedules/cancels auto-hide based on current state
 function scheduleAutoHide() {
-  if (!actionbar) return;
+  // if (!actionbar) return;
 
   // Only auto-hide when:
   //  - PTT is OFF
   //  - no buttons are active
-  if (window.isPTTOn || isAnyActionbarButtonActive()) {
-    if (actionbarHideTimer) {
-      clearTimeout(actionbarHideTimer);
-      actionbarHideTimer = null;
-    }
-    // If we just turned PTT ON while hidden, bring the bar back
-    if (window.isPTTOn && !actionbarVisible) {
-      actionbarVisible = true;
-      applyActionbarVisibility();
-    }
-    return;
-  }
+  // if (window.isPTTOn || isAnyActionbarButtonActive()) {
+  //   if (actionbarHideTimer) {
+  //     clearTimeout(actionbarHideTimer);
+  //     actionbarHideTimer = null;
+  //   }
+  //   // If we just turned PTT ON while hidden, bring the bar back
+  //   if (window.isPTTOn && !actionbarVisible) {
+  //     actionbarVisible = true;
+  //     applyActionbarVisibility();
+  //   }
+  //   return;
+  // }
 
   // If there's already a timer running, don't restart it
-  if (actionbarHideTimer) return;
+  // if (actionbarHideTimer) return;
 
-  actionbarHideTimer = setTimeout(() => {
+  // actionbarHideTimer = setTimeout(() => {
     // Re-check conditions at fire time
-    if (!window.isPTTOn && !isAnyActionbarButtonActive() && actionbarVisible) {
-      actionbarVisible = false;
-      applyActionbarVisibility();
-    }
-    actionbarHideTimer = null;
-  }, AUTO_HIDE_MS);
+  //   if (!window.isPTTOn && !isAnyActionbarButtonActive() && actionbarVisible) {
+  //     actionbarVisible = false;
+  //     applyActionbarVisibility();
+  //   }
+  //   actionbarHideTimer = null;
+  // }, AUTO_HIDE_MS);
 }
 
 // Public helpers for other scripts (pause.js, mute.js, more.js)
