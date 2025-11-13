@@ -21,11 +21,11 @@ let band = { low: 0, mid: 0, high: 0 };
 let audioCtx = null, analyser = null, freqBuf = null, timeBuf = null;
 
 const GAIN = isMobile ? 14 : 1;
-// More sensitive to normal speech, but still noise-gated
-const RMS_MULT = isMobile ? 16 : 7;
+// More sensitive to normal speech
+const RMS_MULT = isMobile ? 18 : 8;
 const RMS_EXP  = isMobile ? 1.4 : 1.2;
 
-// Idle/breathing (back to your earlier values)
+// Idle/breathing
 const IDLE_FLOOR = isMobile ? 10 : 8;
 const IDLE_SWAY_PX = isMobile ? 7 : 5;
 
@@ -361,8 +361,9 @@ function draw(ts = performance.now()) {
   ctx.restore();
 
   // Global amplitude base from RMS; clamp for taste
-  // ⬆️ boosted so normal voice hits the “nice” range
-  const ampBase = Math.min(1.0, smoothedRMS) * (isMobile ? 220 : 160);
+  // speechBoost makes normal voice taller but leaves silence cooling down
+  const speechBoost = isMobile ? 1.6 : 1.4;
+  const ampBase = Math.min(1.0, smoothedRMS * speechBoost) * (isMobile ? 220 : 160);
 
   // Draw back -> front with additive-like blend (only after first PTT)
   if (hasStartedTalking && fadeFactor > 0) {
