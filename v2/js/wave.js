@@ -428,12 +428,15 @@ function isAnyActionbarButtonActive() {
   const pause = document.getElementById("pauseBtn");
   const mute  = document.getElementById("muteBtn");
   const more  = document.getElementById("moreBtn");
+  const menu  = document.getElementById("moreMenu");
 
-  const pauseActive = pause && pause.classList.contains("on-hold");
-  const muteActive  = mute && mute.classList.contains("muted");
-  const moreActive  = more && more.classList.contains("more-open");
+  const pauseActive = !!(pause && pause.classList.contains("on-hold"));
+  const muteActive  = !!(mute  && mute.classList.contains("muted"));
+  const moreActive  = !!(more  && more.classList.contains("more-open"));
+  const menuOpen    = !!(menu  && menu.classList.contains("open"));
 
-  return !!(pauseActive || muteActive || moreActive);
+  // If any of these are true, we treat the bar as "active"
+  return pauseActive || muteActive || moreActive || menuOpen;
 }
 
 function applyActionbarVisibility() {
@@ -718,6 +721,8 @@ function startTalking(e) {
   // In open-mic mode (PTT OFF), use tap to toggle the actionbar,
   // BUT only if no actionbar buttons are currently selected.
   if (!window.isPTTOn) {
+    // If any button (pause/mute/more) is active OR the menu is open,
+    // ignore taps on the touchTarget entirely.
     if (isAnyActionbarButtonActive()) {
       e.preventDefault();
       return;
@@ -786,6 +791,7 @@ if (touchTarget) {
   touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
   touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
 }
+
 
 
 /* ============================================================
