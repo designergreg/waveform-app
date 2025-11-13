@@ -28,11 +28,13 @@
         : "../icons/linear/pause.svg";
     }
 
-    if (actionbarTextEl) {
-      actionbarTextEl.textContent = isOnHold
-        ? "On hold"
-        : (isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk");
-    }
+    if (typeof window.setPromptText === "function") {
+  const msg = isOnHold
+    ? "On hold"
+    : (isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk");
+  window.setPromptText(msg);
+}
+
 
     // Optional: if you want to show "On hold" in the talkPrompt later
     // if (talkPromptEl && talkPromptText) {

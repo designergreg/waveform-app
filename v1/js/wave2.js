@@ -15,6 +15,59 @@ window.addEventListener("resize", resize);
 /* ---------- Platform detect ---------- */
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+/* ---------- Prompt routing: PTT ON => actionbar-text, PTT OFF => talkPrompt ---------- */
+const actionbarTextEl   = document.querySelector(".actionbar-text");
+const talkPromptEl      = document.getElementById("talkPrompt");
+const talkPromptTextEl  = talkPromptEl?.querySelector("div");
+
+// Global PTT state (true = ON = use actionbar-text)
+window.isPTTOn = true;
+// Store the current prompt string so we can re-render when mode switches
+window.currentPromptText = "";
+
+// Render the current prompt into the correct UI element
+function renderPrompt() {
+  if (!actionbarTextEl || !talkPromptEl || !talkPromptTextEl) return;
+
+  let msg = window.currentPromptText || "";
+
+  const idleMobile  = "Press and hold screen to talk";
+  const idleDesktop = "Hold spacebar to talk";
+
+  // When PTT is OFF, replace the idle “hold to talk” copy
+  if (!window.isPTTOn && (msg === idleMobile || msg === idleDesktop)) {
+    msg = "Your microphone is on";
+  }
+
+  if (window.isPTTOn) {
+    // PTT ON → actionbar-text owns the prompt
+    actionbarTextEl.textContent = msg;
+
+    talkPromptTextEl.textContent = "";
+    talkPromptEl.style.display = "none";
+  } else {
+    // PTT OFF → talkPrompt owns the prompt
+    actionbarTextEl.textContent = "";
+    actionbarTextEl.style.display = "none";
+
+    talkPromptTextEl.textContent = msg;
+    talkPromptEl.style.display = msg ? "block" : "none";
+  }
+}
+
+
+// Public helpers other scripts can call
+window.setPromptText = function (msg) {
+  window.currentPromptText = msg || "";
+  renderPrompt();
+};
+
+window.updatePromptMode = function () {
+  // Called when PTT mode changes – just re-render the existing text
+  renderPrompt();
+};
+
+
 /* ---------- Audio ---------- */
 let smoothedRMS = 0;
 let band = { low: 0, mid: 0, high: 0 };
@@ -233,11 +286,12 @@ if (onHoldScrim) {
   });
 });
 
-const buttons = document.querySelectorAll(".icon-button");
-const actionbarText = document.querySelector(".actionbar-text");
-if (actionbarText) {
-  actionbarText.textContent = isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk";
+const buttons = document.querySelectorAll(".icon-button:not(#muteBtn)");
+
+if (typeof window.setPromptText === "function") {
+  window.setPromptText(isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk");
 }
+
 
 /* ---------- Drawing ---------- */
 const CREST_ALPHA = 0.10;   // softer crest so colors aren’t lightened too much
@@ -332,9 +386,43 @@ function draw(ts = performance.now()) {
   }
 
   // Fade UI in/out under the waves
-  fadeFactor = isTalking ? Math.min(fadeFactor + FADE_SPEED, 1) : Math.max(fadeFactor - FADE_SPEED, 0);
-  buttons.forEach(btn => { btn.style.display = fadeFactor > 0 ? "none" : "flex"; });
-  if (actionbarText) actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
+  if (isOnHold) {
+    // On hold → always hide waveform & glow
+    fadeFactor = 0;
+  } else if (!window.isPTTOn) {
+    // PTT OFF → waveform always on
+    fadeFactor = 1;
+    hasStartedTalking = true; // ensure we draw the wave even if user never pressed PTT
+  } else {
+    // PTT ON → original behavior (fade in while talking, fade out when idle)
+    fadeFactor = isTalking
+      ? Math.min(fadeFactor + FADE_SPEED, 1)
+      : Math.max(fadeFactor - FADE_SPEED, 0);
+  }
+
+  // Show/hide buttons based on mode
+  buttons.forEach(btn => {
+    if (window.isPTTOn) {
+      // PTT ON → hide while wave is up
+      btn.style.display = fadeFactor > 0 ? "none" : "flex";
+    } else {
+      // PTT OFF → always visible
+      btn.style.display = "flex";
+    }
+  });
+
+
+  // Only show actionbar text when PTT is ON; otherwise keep it hidden
+  const actionbarText = document.querySelector(".actionbar-text");
+  if (actionbarText) {
+    if (window.isPTTOn) {
+      actionbarText.style.display = fadeFactor > 0 ? "none" : "block";
+    } else {
+      actionbarText.style.display = "none";
+    }
+  }
+
+
 
   // Advance per-layer phase by speed (parallax + opposing motion)
   LAYER_CONFIG.forEach(l => { l.phase += (l.speed * dt * 0.0015); });
@@ -345,8 +433,13 @@ function draw(ts = performance.now()) {
   const w = canvas.clientWidth, h = canvas.clientHeight;
 
   // ---- Soft gold under-glow (ONLY during active PTT)
+  // ---- Soft gold under-glow (when waveform is live)
   ctx.save();
-  if (hasStartedTalking && isTalking && !isOnHold && fadeFactor > 0) {
+
+  const waveLive   = hasStartedTalking && !isOnHold && fadeFactor > 0;
+  const glowActive = window.isPTTOn ? isTalking : true; // always on in PTT OFF (open-mic) mode
+
+  if (waveLive && glowActive) {
     const glow = Math.min(0.20, 0.28 * engage) * fadeFactor;
     if (glow > 0.001) {
       const lg = ctx.createLinearGradient(0, 0, 0, h);
@@ -358,7 +451,9 @@ function draw(ts = performance.now()) {
       ctx.fillRect(0, 0, w, h);
     }
   }
+
   ctx.restore();
+
 
   // Global amplitude base from RMS; clamp for taste
   // speechBoost makes normal voice taller but leaves silence cooling down
@@ -389,16 +484,27 @@ function startTalking(e) {
   if (isOnHold) { e.preventDefault(); return; } // block touch PTT during hold
   isTalking = true;
   hasStartedTalking = true; // show waveform only after first PTT
-  if (actionbarText) actionbarText.textContent = "Release to send";
+
+  // Only change prompts in PTT ON mode
+  if (window.isPTTOn && typeof window.setPromptText === "function") {
+    window.setPromptText("Release to send");
+  }
+
   e.preventDefault();
 }
 function stopTalking(e) {
   isTalking = false;
-  if (actionbarText) {
-    actionbarText.textContent = isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk";
+
+  // Only change prompts in PTT ON mode
+  if (window.isPTTOn && typeof window.setPromptText === "function") {
+    window.setPromptText(
+      isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk"
+    );
   }
+
   e.preventDefault();
 }
+
 
 // Pointer & Touch
 if (touchTarget) {

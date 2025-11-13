@@ -79,8 +79,8 @@ canvas#wave {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100vw - 32px);     /* ✅ dynamic width */
-  max-width: 408px;              /* ✅ cap at 408px */
+  width: calc(100vw - 32px);     /* dynamic width */
+  max-width: 408px;              /* cap at 408px */
   height: 60px;
   border-radius: 30px;
   background: rgba(0, 0, 0, 0.25);
@@ -131,10 +131,6 @@ canvas#wave {
   filter: brightness(0) invert(1);
 }
 
-.icon-button:hover {
-  background: #1F4C7D;
-}
-
 /* ---------- On Hold ---------- */
 #onHoldScrim {
   position: fixed;
@@ -150,6 +146,11 @@ canvas#wave {
 /* Pause button selected state */
 .icon-button.on-hold {
   background: #1F4C7D !important;
+}
+
+/* More button selected/open state */
+#moreBtn.more-open {
+  background: #1F4C7D;
 }
 
 
@@ -204,6 +205,7 @@ canvas#wave {
   gap: 8px;                      /* adds spacing between left & right */
   padding: 0 8px;                /* row’s own left/right padding */
 }
+
 /* Base hover effect for all rows */
 .more-item-row:hover {
   background: #1F4C7D;
@@ -322,7 +324,6 @@ canvas#wave {
 }
 
 
-
 /* ---------- Talk Prompt (fix sizing/wrapping) ---------- */
 #talkPrompt {
   position: fixed;
@@ -359,15 +360,53 @@ canvas#wave {
   word-break: normal;
 }
 
+/* Mute button default visibility */
+#muteBtn {
+  display: none; /* default: hidden */
+}
 
-
+/* Desktop hover states (PTT ON or OFF) */
 @media (hover: hover) and (pointer: fine) {
   .more-item-row:hover {
     background: #1F4C7D;
     cursor: pointer;
   }
 
+  /* Always give icon buttons a hover state on desktop */
   .icon-button:hover {
-    background: #1F4C7D;
+    background: #1F4C7D !important;
   }
 }
+
+/* ============================================================
+   PTT OFF MODE UI CHANGES
+   ============================================================ */
+
+/* Actionbar becomes darker when PTT is OFF */
+body.ptt-off .actionbar {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Icon buttons: transparent by default when PTT is OFF */
+body.ptt-off .icon-button {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+/* Keep hover & selected states the SAME as PTT ON when PTT is OFF */
+@media (hover: hover) and (pointer: fine) {
+  body.ptt-off .icon-button:hover {
+    background: #1F4C7D !important;
+  }
+}
+
+body.ptt-off .icon-button.on-hold {
+  background: #1F4C7D !important;
+}
+
+/* Mute button inherits the same logic; just ensure its default is also transparent */
+body.ptt-off #muteBtn {
+  background: transparent;
+  backdrop-filter: none;
+}
+

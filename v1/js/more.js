@@ -27,7 +27,7 @@
 
     moreMenu.classList.add("open");
     moreMenu.style.display = "block";
-    moreBtn.style.background = "#1F4C7D";
+    if (moreBtn) moreBtn.classList.add("more-open");
     if (touchTarget) touchTarget.style.pointerEvents = "none";
   }
 
@@ -37,7 +37,10 @@
 
     moreMenu.classList.remove("open");
     setTimeout(() => { if (!menuOpen) moreMenu.style.display = "none"; }, 150);
-    moreBtn.style.background = "rgba(0,0,0,0.4)";
+    if (moreBtn) {
+      moreBtn.classList.remove("more-open");
+      moreBtn.style.background = "";
+    }
     if (touchTarget) touchTarget.style.pointerEvents = "";
 
     // ✅ Restore only if it was visible before AND the call is still on hold
@@ -64,20 +67,38 @@
   moreMenu.addEventListener("pointerdown", (e) => e.stopPropagation());
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
 
-// --- Push-to-talk toggle (visual only) ---
+// --- Push-to-talk toggle: visual + prompt routing ---
 const pttRow    = moreMenu.querySelector(".ptt-row");
 const pttToggle = moreMenu.querySelector(".toggle-switch");
 
 if (pttRow && pttToggle) {
   pttRow.addEventListener("pointerdown", (e) => {
-    // Prevent the menu from closing or selecting text
     e.stopPropagation();
     e.preventDefault();
 
     const isNowOff = pttToggle.classList.toggle("off");
-    pttToggle.setAttribute("data-toggle", isNowOff ? "Off" : "On");
+    const isOn = !isNowOff;
+
+    pttToggle.setAttribute("data-toggle", isOn ? "On" : "Off");
+
+    // Update global PTT mode
+    window.isPTTOn = isOn;
+
+    // Toggle body class
+    document.body.classList.toggle("ptt-off", !isOn);
+
+    // NEW — Show/hide mute button
+    const muteBtn = document.getElementById("muteBtn");
+    if (muteBtn) muteBtn.style.display = isOn ? "none" : "flex";
+
+    // Re-render prompt system
+    if (typeof window.updatePromptMode === "function") {
+      window.updatePromptMode();
+    }
   });
 }
+
+
 
 
 })();
