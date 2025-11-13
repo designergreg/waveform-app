@@ -56,9 +56,13 @@ function renderPrompt() {
   const idleMobile  = "Press and hold screen to talk";
   const idleDesktop = "Hold spacebar to talk";
 
-  // When PTT is OFF, replace the idle “hold to talk” copy
+  // --------------------------------------------
+  // PTT OFF behavior:
+  // - Never show the idle "hold to talk" prompts.
+  // - Other messages (e.g. "Your mic is muted") still show.
+  // --------------------------------------------
   if (!window.isPTTOn && (msg === idleMobile || msg === idleDesktop)) {
-    msg = "Your microphone is on";
+    msg = "";
   }
 
   if (window.isPTTOn) {
@@ -66,16 +70,17 @@ function renderPrompt() {
     actionbarTextEl.textContent = msg;
 
     talkPromptTextEl.textContent = "";
-    talkPromptEl.style.display   = "none";
+    talkPromptEl.style.display = "none";
   } else {
-    // PTT OFF → talkPrompt bubble owns the prompt
-    actionbarTextEl.textContent  = "";
+    // PTT OFF → talkPrompt owns the prompt
+    actionbarTextEl.textContent = "";
     actionbarTextEl.style.display = "none";
 
     talkPromptTextEl.textContent = msg;
-    talkPromptEl.style.display   = msg ? "block" : "none";
+    talkPromptEl.style.display = msg ? "block" : "none";
   }
 }
+
 
 /* Public helpers other scripts can call */
 window.setPromptText = function (msg) {
