@@ -21,10 +21,11 @@ let band = { low: 0, mid: 0, high: 0 };
 let audioCtx = null, analyser = null, freqBuf = null, timeBuf = null;
 
 const GAIN = isMobile ? 14 : 1;
-const RMS_MULT = isMobile ? 12 : 5;
+// More sensitive to normal speech, but still noise-gated
+const RMS_MULT = isMobile ? 16 : 7;
 const RMS_EXP  = isMobile ? 1.4 : 1.2;
 
-// Idle/breathing
+// Idle/breathing (back to your earlier values)
 const IDLE_FLOOR = isMobile ? 10 : 8;
 const IDLE_SWAY_PX = isMobile ? 7 : 5;
 
@@ -59,10 +60,15 @@ function audioLoop() {
     sum += v * v;
   }
   let rawRMS = Math.sqrt(sum / timeBuf.length);
+
+  // Gate tiny noise so idle really cools down
   if (rawRMS < 0.004) rawRMS = 0;
 
+  // Simple, more sensitive curve
   const scaled = Math.pow(rawRMS * RMS_MULT, RMS_EXP);
-  const ATTACK = 0.8, RELEASE = 0.05;
+
+  const ATTACK = 0.8;
+  const RELEASE = 0.05;
   smoothedRMS = scaled > smoothedRMS
     ? smoothedRMS * (1 - ATTACK)  + scaled * ATTACK
     : smoothedRMS * (1 - RELEASE) + scaled * RELEASE;
@@ -164,7 +170,7 @@ const LAYER_CONFIG = [
 /* ---------- Interaction state ---------- */
 let isTalking = false;
 let hasStartedTalking = false;
-let isOnHold = false; // ✅ source of truth for hold
+let isOnHold = false; // source of truth for hold
 let fadeFactor = 1;
 const FADE_SPEED = 0.05;
 
@@ -192,7 +198,7 @@ function setOnHold(state){
     fadeFactor = 0;            // snap hide the wave if it was up
   }
 }
-window.setOnHold = setOnHold; // ✅ allow pause.js to call
+window.setOnHold = setOnHold; // allow pause.js to call
 
 // Optional: listen for a custom event if your pause.js emits one
 document.addEventListener('hold:change', (e) => {
@@ -212,14 +218,14 @@ if (onHoldScrim) {
   new MutationObserver(() => {
     const visible = getComputedStyle(onHoldScrim).display !== 'none' && onHoldScrim.style.display !== 'none';
     if (visible) setOnHold(true);
-  }).observe(onHoldScrim, { attributes: true, attributeFilter: ['style'] });
+  }).observe(onHoldScrim, { attributes: ['style'] });
 }
 
 /* ---------- Keyboard PTT ---------- */
 ["keydown","keyup"].forEach(ev=>{
   window.addEventListener(ev,e=>{
     if(e.code==="Space"){
-      if (isOnHold) { e.preventDefault(); return; } // ✅ block PTT while on hold
+      if (isOnHold) { e.preventDefault(); return; } // block PTT while on hold
       isTalking = (ev === "keydown");
       if (isTalking) hasStartedTalking = true;
       e.preventDefault();
@@ -279,7 +285,6 @@ function fillLayer(layer, width, height, tMs, ampBase, alphaMul = 1) {
     ctx.save();
     ctx.globalAlpha = CREST_ALPHA * alphaMul;
     ctx.lineWidth = CREST_WIDTH;
-    // crest uses same warmed color but full alpha in strokeStyle definition
     ctx.strokeStyle = hslToRgba(warm.H, warm.S, warm.L, 1);
     ctx.beginPath();
     for (let i = 0; i < crest.length; i++) {
@@ -356,7 +361,8 @@ function draw(ts = performance.now()) {
   ctx.restore();
 
   // Global amplitude base from RMS; clamp for taste
-  const ampBase = Math.min(1.0, smoothedRMS) * (isMobile ? 180 : 120);
+  // ⬆️ boosted so normal voice hits the “nice” range
+  const ampBase = Math.min(1.0, smoothedRMS) * (isMobile ? 220 : 160);
 
   // Draw back -> front with additive-like blend (only after first PTT)
   if (hasStartedTalking && fadeFactor > 0) {
@@ -379,7 +385,7 @@ const video = document.getElementById("bgVideo");
 if (talkPrompt) talkPrompt.style.display = "none";
 
 function startTalking(e) {
-  if (isOnHold) { e.preventDefault(); return; } // ✅ block touch PTT during hold
+  if (isOnHold) { e.preventDefault(); return; } // block touch PTT during hold
   isTalking = true;
   hasStartedTalking = true; // show waveform only after first PTT
   if (actionbarText) actionbarText.textContent = "Release to send";
