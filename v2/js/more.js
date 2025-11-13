@@ -154,6 +154,28 @@
       // Update global PTT mode
       window.isPTTOn = isOn;
 
+      // If we are switching PTT back ON, force mute OFF
+      if (isOn && typeof window.setMutedState === "function") {
+        window.setMutedState(false);
+      }
+
+      // If PTT just turned ON and we're NOT on hold,
+      // explicitly restore the idle PTT prompt so it appears immediately
+      const onHold =
+        document.body.classList.contains("on-hold") || !!window.isOnHold;
+
+      if (isOn && !onHold && typeof window.setPromptText === "function") {
+        const isMobile =
+          /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+          (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+
+        const idleMsg = isMobile
+          ? "Press and hold screen to talk"
+          : "Hold spacebar to talk";
+
+        window.setPromptText(idleMsg);
+      }
+
       // Toggle body class for PTT-off styles
       document.body.classList.toggle("ptt-off", !isOn);
 
@@ -169,4 +191,6 @@
       }
     });
   }
+
+
 })();
