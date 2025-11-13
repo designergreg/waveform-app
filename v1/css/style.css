@@ -153,12 +153,12 @@ canvas#wave {
 
 /* Pause button selected state (on hold) */
 .icon-button.on-hold {
-  background: #1F4C7D !important;
+  background: #333C74 !important;
 }
 
 /* More button selected/open state (when menu open) */
 #moreBtn.more-open {
-  background: #1F4C7D;
+  background: #333C74;
 }
 
 /* Mute button default visibility (toggled by JS) */
@@ -239,7 +239,7 @@ canvas#wave {
 
 /* Base hover for rows */
 .more-item-row:hover {
-  background: #1F4C7D;
+  background: #333C74;
   cursor: pointer;
 }
 
@@ -309,7 +309,7 @@ canvas#wave {
   justify-content: flex-end;
   box-sizing: border-box;
   position: relative;
-  background: #1F4C7D;   /* ON color */
+  background: #333C74;   /* ON color */
   border-radius: 999px;
   outline-offset: -1px;
   overflow: hidden;
@@ -403,13 +403,13 @@ canvas#wave {
 @media (hover: hover) and (pointer: fine) {
   /* More menu rows highlight on hover */
   .more-item-row:hover {
-    background: #1F4C7D;
+    background: #333C74;
     cursor: pointer;
   }
 
   /* All icon buttons get a hover state on desktop (PTT on/off) */
   .icon-button:hover {
-    background: #1F4C7D !important;
+    background: #333C74 !important;
   }
 }
 
@@ -433,13 +433,13 @@ body.ptt-off .icon-button {
 /* Hover state still active for icon buttons when PTT is OFF (desktop) */
 @media (hover: hover) && (pointer: fine) {
   body.ptt-off .icon-button:hover {
-    background: #1F4C7D !important;
+    background: #333C74 !important;
   }
 }
 
 /* Selected state (e.g. pause/on-hold) still blue in PTT OFF */
 body.ptt-off .icon-button.on-hold {
-  background: #1F4C7D !important;
+  background: #333C74 !important;
 }
 
 /* Mute button defaults to transparent in PTT OFF mode */

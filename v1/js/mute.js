@@ -9,20 +9,22 @@
  *
  * Notes:
  *  - Default: muted = false
- *  - Reuses the .on-hold button background style for selected state
- *  - Does NOT use a scrim (unlike Pause)
+ *  - Mutually exclusive with hold: turning mute ON will turn hold OFF.
+ *  - Does NOT use a scrim (unlike Pause).
  * ============================================================ */
 
 (() => {
   const muteBtn    = document.getElementById("muteBtn");
   const waveCanvas = document.getElementById("wave");
 
-  // If we don't have the essentials, bail out quietly
+  // If we don’t have the essentials, bail out quietly
   if (!muteBtn || !waveCanvas || typeof window.setPromptText !== "function") {
     return;
   }
 
   const muteIcon = muteBtn.querySelector("img");
+
+  // Capture the original setPromptText so we can wrap it
   const originalSetPromptText = window.setPromptText;
 
   // Internal + global mute state
@@ -45,23 +47,22 @@
     }
   }
 
+  // Wrap the shared prompt setter
   window.setPromptText = function (msg) {
     const text = msg || "";
 
-    // Track what the rest of the app *wants* the prompt to be
+    // Track whatever the app *wants* to show, unless it's our own mute text
     if (text && text !== "Your mic is muted") {
       lastRequestedPrompt = text;
     }
 
-    // Decide what we actually show based on mute state
     applyPromptFromState();
   };
 
   /* ------------------------------------------------------------
-   * VISUAL + STATE UPDATE
+   * Apply all visual + behavioral changes for mute state
    * ------------------------------------------------------------ */
   function applyMuteUI() {
-    // Global flag others can read if needed
     window.isMicMuted = isMuted;
 
     // Button “selected” background (reuse .on-hold style)
@@ -75,20 +76,40 @@
         : "../icons/linear/live_mic.svg";
     }
 
-    // Hide/show waveform + glow (both rendered into this canvas)
+    // Hide/show waveform + glow (both rendered into the same canvas)
     waveCanvas.style.visibility = isMuted ? "hidden" : "visible";
 
     // Ensure prompt text matches current mute state
     applyPromptFromState();
   }
 
-  function toggleMute() {
-    isMuted = !isMuted;
+  /* ------------------------------------------------------------
+   * Public helper so other modules (e.g. pause.js) can set mute
+   * ------------------------------------------------------------ */
+  window.setMutedState = function (state) {
+    const next = !!state;
+    if (next === isMuted) return;
+
+    isMuted = next;
     applyMuteUI();
+  };
+
+  /* ------------------------------------------------------------
+   * Local toggle handler (click on mute button)
+   * ------------------------------------------------------------ */
+  function toggleMute() {
+    const next = !isMuted;
+
+    // If we are turning MUTE ON, force HOLD OFF so they can't both be active
+    if (next && typeof window.setHoldState === "function") {
+      window.setHoldState(false);
+    }
+
+    window.setMutedState(next);
   }
 
   /* ------------------------------------------------------------
-   * EVENT HOOKUP
+   * Event hookup
    * ------------------------------------------------------------ */
   muteBtn.addEventListener("click", toggleMute);
 })();

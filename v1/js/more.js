@@ -1,101 +1,113 @@
 // js/more.js
 (() => {
-  /* ----------------------------------------------------------
-   * DOM ELEMENTS
-   * ---------------------------------------------------------- */
+  /* ============================================================
+   * MORE MENU + PTT TOGGLE
+   *
+   * Responsibilities:
+   *  - Open/close the "More" glass menu
+   *  - Temporarily hide the floating talk prompt while menu is open
+   *  - Restore the prompt when closed (for hold + mute cases)
+   *  - Toggle PTT state + UI + prompt routing
+   * ============================================================ */
+
   const moreBtn      = document.getElementById("moreBtn");
   const moreMenu     = document.getElementById("moreMenu");
   const talkPromptEl = document.getElementById("talkPrompt");
   const touchTarget  = document.getElementById("touchTarget");
 
-  // Elements inside the More menu for PTT toggle
-  const pttRow    = moreMenu?.querySelector(".ptt-row");
-  const pttToggle = moreMenu?.querySelector(".toggle-switch");
-
-  // Mute button in the actionbar (shown when PTT is OFF)
-  const muteBtn   = document.getElementById("muteBtn");
-
-  /* ----------------------------------------------------------
-   * STATE
-   * ---------------------------------------------------------- */
   let menuOpen = false;
-  // Tracks if talkPrompt was visible before opening the menu
-  let wasPromptVisible = false;
+  let wasPromptVisible = false; // tracks prompt visibility before opening menu
 
-  /* ----------------------------------------------------------
-   * HELPERS
-   * ---------------------------------------------------------- */
+  /* ------------------------------------------------------------
+   * Helpers
+   * ------------------------------------------------------------ */
 
-  // Returns true if the call is currently on hold
-  // (controlled by pause.js via body.on-hold or window.isOnHold)
+  // "On hold" is driven by pause.js (body class + optional window.isOnHold)
   function isHoldActive() {
-    return document.body.classList.contains("on-hold") || !!window.isOnHold;
+    return (
+      document.body.classList.contains("on-hold") ||
+      !!window.isOnHold
+    );
   }
 
-  /* ----------------------------------------------------------
-   * MENU OPEN / CLOSE
-   * ---------------------------------------------------------- */
+  // Should the talk prompt be visible after closing the menu?
+  function shouldRestorePrompt() {
+    if (!wasPromptVisible) return false;
+
+    const pttOn   = window.isPTTOn !== false;   // default true if undefined
+    const pttOff  = !pttOn;
+    const muted   = !!window.isMicMuted;
+
+    // Restore if:
+    //  - still on hold, OR
+    //  - PTT is OFF and we're currently muted ("Your mic is muted" prompt)
+    if (isHoldActive()) return true;
+    if (pttOff && muted) return true;
+
+    return false;
+  }
+
+  /* ------------------------------------------------------------
+   * Menu open / close
+   * ------------------------------------------------------------ */
 
   function openMenu() {
-    if (menuOpen || !moreMenu || !moreBtn) return;
+    if (menuOpen) return;
     menuOpen = true;
 
-    // Remember if the prompt bubble was visible before opening
+    // Remember if the floating talk prompt was visible
     if (talkPromptEl) {
       const disp = getComputedStyle(talkPromptEl).display;
       wasPromptVisible = disp !== "none";
-      talkPromptEl.style.display = "none";      // hide while menu is open
+      talkPromptEl.style.display = "none"; // hide while menu is open
     }
 
-    // Show and animate menu
     moreMenu.classList.add("open");
     moreMenu.style.display = "block";
 
-    // Visually mark the More button as "selected / open"
-    moreBtn.classList.add("more-open");
+    if (moreBtn) {
+      moreBtn.classList.add("more-open");
+    }
 
-    // Disable touch interactions with the main PTT area while menu is open
+    // Disable touch target while menu is open so the user doesn't
+    // accidentally start PTT behind the glass panel
     if (touchTarget) {
       touchTarget.style.pointerEvents = "none";
     }
   }
 
   function closeMenu() {
-    if (!menuOpen || !moreMenu || !moreBtn) return;
+    if (!menuOpen) return;
     menuOpen = false;
 
-    // Close animation
     moreMenu.classList.remove("open");
     setTimeout(() => {
-      if (!menuOpen) {
-        moreMenu.style.display = "none";
-      }
+      if (!menuOpen) moreMenu.style.display = "none";
     }, 150);
 
-    // Clear "open" visual state on More button
-    moreBtn.classList.remove("more-open");
-    moreBtn.style.background = "";   // in case any inline background lingered
+    if (moreBtn) {
+      moreBtn.classList.remove("more-open");
+      moreBtn.style.background = "";
+    }
 
-    // Re-enable interactions with PTT touch area
     if (touchTarget) {
       touchTarget.style.pointerEvents = "";
     }
 
-    // Restore talkPrompt only if:
-    //  - it was visible before AND
-    //  - the call is still on hold
+    // Restore prompt only if it was visible before AND
+    // either we're still on hold OR we're muted in PTT-off mode.
     if (talkPromptEl) {
-      talkPromptEl.style.display =
-        wasPromptVisible && isHoldActive() ? "block" : "none";
+      talkPromptEl.style.display = shouldRestorePrompt()
+        ? "block"
+        : "none";
     }
   }
 
-  /* ----------------------------------------------------------
-   * BUTTON / OUTSIDE INTERACTION
-   * ---------------------------------------------------------- */
+  /* ------------------------------------------------------------
+   * Menu button + outside clicks
+   * ------------------------------------------------------------ */
 
   if (moreBtn) {
-    // Toggle menu when clicking/pointer-down on More
     moreBtn.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -103,13 +115,10 @@
     });
   }
 
-  // Close when clicking outside the menu
   function outsidePressHandler(e) {
-    if (!menuOpen || !moreMenu || !moreBtn) return;
-
+    if (!menuOpen) return;
     const insideMenu = moreMenu.contains(e.target);
-    const onButton   = moreBtn.contains(e.target);
-
+    const onButton   = moreBtn && moreBtn.contains(e.target);
     if (!insideMenu && !onButton) {
       closeMenu();
     }
@@ -119,46 +128,42 @@
     passive: true,
   });
 
-  // Prevent clicks inside the menu from bubbling and closing it
-  if (moreMenu) {
-    moreMenu.addEventListener("pointerdown", (e) => e.stopPropagation());
-  }
+  moreMenu.addEventListener("pointerdown", (e) => e.stopPropagation());
 
-  // Close menu with ESC key
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      closeMenu();
-    }
+    if (e.key === "Escape") closeMenu();
   });
 
-  /* ----------------------------------------------------------
-   * PTT TOGGLE (visual + prompt routing)
-   * ---------------------------------------------------------- */
+  /* ------------------------------------------------------------
+   * Push-to-talk toggle: visual + prompt routing
+   * ------------------------------------------------------------ */
+
+  const pttRow    = moreMenu.querySelector(".ptt-row");
+  const pttToggle = moreMenu.querySelector(".toggle-switch");
 
   if (pttRow && pttToggle) {
     pttRow.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
       e.preventDefault();
 
-      // Toggle visual OFF state
       const isNowOff = pttToggle.classList.toggle("off");
-      const isOn = !isNowOff;
+      const isOn     = !isNowOff;
 
-      // Update label attribute
       pttToggle.setAttribute("data-toggle", isOn ? "On" : "Off");
 
-      // Update global PTT mode so other scripts (wave2.js, etc.) can react
+      // Update global PTT mode
       window.isPTTOn = isOn;
 
-      // Add/remove body.ptt-off for CSS-based UI changes
+      // Toggle body class for PTT-off styles
       document.body.classList.toggle("ptt-off", !isOn);
 
-      // Show/hide mute button when PTT is OFF
+      // Show/hide mute button in the action bar
+      const muteBtn = document.getElementById("muteBtn");
       if (muteBtn) {
         muteBtn.style.display = isOn ? "none" : "flex";
       }
 
-      // Re-render prompt UI to route text to actionbar vs talkPrompt
+      // Re-render prompt routing (actionbar-text vs talkPrompt)
       if (typeof window.updatePromptMode === "function") {
         window.updatePromptMode();
       }
