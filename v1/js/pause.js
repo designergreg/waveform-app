@@ -1,51 +1,69 @@
-/* ---------- On Hold ---------- */
-const pauseBtn = document.getElementById("pauseBtn");
-const scrim = document.getElementById("onHoldScrim");
-const pauseIcon = pauseBtn?.querySelector("img");
+/* ---------- On Hold (Pause) ---------- */
+(() => {
+  const pauseBtn = document.getElementById("pauseBtn");
+  const scrim = document.getElementById("onHoldScrim");
+  const pauseIcon = pauseBtn?.querySelector("img");
 
-// Query what we need locally in this file
-const actionbarTextEl = document.querySelector(".actionbar-text");
-const talkPromptEl = document.getElementById("talkPrompt");
-const talkPromptText = talkPromptEl?.querySelector("div");
+  const isMobile =
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
 
-let isOnHold = false;
+  const actionbarTextEl = document.querySelector(".actionbar-text");
+  const talkPromptEl = document.getElementById("talkPrompt");
+  const talkPromptText = talkPromptEl?.querySelector("div");
 
-if (pauseBtn && scrim && pauseIcon) {
-  pauseBtn.addEventListener("click", () => {
-    isOnHold = !isOnHold;
+  let isOnHold = false;
 
-    document.body.classList.toggle('on-hold', isOnHold);
-    window.isOnHold = isOnHold; // optional
+  function applyHoldUI() {
+    document.body.classList.toggle("on-hold", isOnHold);
 
-    if (isOnHold) {
-      // Enter On Hold
-      scrim.style.display = "block";
-      pauseBtn.classList.add("on-hold");
-      pauseIcon.src = "../icons/bold/play.svg";
-      // HIDING TALK PROMPT FOR THIS PROTOTYPE - SAVING THE BELOW CODE FOR LATER
-      // if (talkPromptEl && talkPromptText) {
-      //   talkPromptText.textContent = "On hold";
-      //   talkPromptEl.style.display = "block";
-      // }
-      if (actionbarTextEl) actionbarTextEl.textContent = "On hold";
-    } else {
-      // Exit On Hold
-      scrim.style.display = "none";
-      pauseBtn.classList.remove("on-hold");
-      pauseIcon.src = "../icons/linear/pause.svg";
-      const idleText = window.isMobile
-        ? "Press and hold screen to talk"
-        : "Hold spacebar to talk";
-      
-      // HIDING TALK PROMPT FOR THIS PROTOTYPE - SAVING THE BELOW CODE FOR LATER
-      // if (talkPromptEl && talkPromptText) {
-      //   talkPromptText.textContent = "";
-      //   talkPromptEl.style.display = "none";
-      // }
-      if (actionbarTextEl) actionbarTextEl.textContent = idleText;
+    if (scrim) scrim.style.display = isOnHold ? "block" : "none";
+    if (pauseBtn) {
+      pauseBtn.classList.toggle("on-hold", isOnHold);
+      pauseBtn.setAttribute("aria-pressed", String(isOnHold));
     }
-  });
+    if (pauseIcon) {
+      pauseIcon.src = isOnHold
+        ? "../icons/bold/play.svg"
+        : "../icons/linear/pause.svg";
+    }
 
-  document.body.classList.toggle('on-hold', isOnHold);
-  window.isOnHold = isOnHold; // optional
-}
+    if (actionbarTextEl) {
+      actionbarTextEl.textContent = isOnHold
+        ? "On hold"
+        : (isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk");
+    }
+
+    // Optional: if you want to show "On hold" in the talkPrompt later
+    // if (talkPromptEl && talkPromptText) {
+    //   if (isOnHold) {
+    //     talkPromptText.textContent = "On hold";
+    //     talkPromptEl.style.display = "block";
+    //   } else {
+    //     talkPromptText.textContent = "";
+    //     talkPromptEl.style.display = "none";
+    //   }
+    // }
+  }
+
+  function notifyWave() {
+    if (typeof window.setOnHold === "function") {
+      window.setOnHold(isOnHold);
+    }
+    document.dispatchEvent(
+      new CustomEvent("hold:change", { detail: { onHold: isOnHold } })
+    );
+  }
+
+  function toggleHold() {
+    isOnHold = !isOnHold;
+    applyHoldUI();
+    notifyWave();
+  }
+
+  if (pauseBtn && scrim && pauseIcon) {
+    pauseBtn.addEventListener("click", toggleHold);
+    applyHoldUI();
+    notifyWave();
+  }
+})();
