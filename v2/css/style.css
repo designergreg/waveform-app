@@ -437,7 +437,7 @@ body.ptt-off .icon-button {
 }
 
 /* Hover state still active for icon buttons when PTT is OFF (desktop) */
-@media (hover: hover) && (pointer: fine) {
+@media (hover: hover) and (pointer: fine) {
   body.ptt-off .icon-button:hover {
     background: #333C74 !important;
   }

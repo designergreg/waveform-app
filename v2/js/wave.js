@@ -717,35 +717,15 @@ if (talkPrompt) {
   talkPrompt.style.display = "none";
 }
 
+// PTT ON: press-and-hold to talk (as before)
 function startTalking(e) {
-  // In open-mic mode (PTT OFF), use tap to toggle the actionbar,
-  // BUT only if no actionbar buttons are currently selected.
+  // In PTT OFF mode, we do NOT use this handler to toggle the bar anymore.
+  // That’s now handled by a separate click handler below.
   if (!window.isPTTOn) {
-    // If any button (pause/mute/more) is active OR the menu is open,
-    // ignore taps on the touchTarget entirely.
-    if (isAnyActionbarButtonActive()) {
-      e.preventDefault();
-      return;
-    }
-
-    actionbarVisible = !actionbarVisible;
-    applyActionbarVisibility();
-
-    if (actionbarVisible) {
-      // When shown again, (re)start auto-hide countdown
-      scheduleAutoHide();
-    } else {
-      if (actionbarHideTimer) {
-        clearTimeout(actionbarHideTimer);
-        actionbarHideTimer = null;
-      }
-    }
-
     e.preventDefault();
     return;
   }
 
-  // Normal PTT ON behavior
   if (isOnHold) {
     e.preventDefault();
     return; // block touch PTT during hold
@@ -763,7 +743,7 @@ function startTalking(e) {
 }
 
 function stopTalking(e) {
-  // In open-mic mode, startTalking already handled the toggle
+  // In open-mic mode (PTT OFF) we don't handle toggling here anymore.
   if (!window.isPTTOn) {
     e.preventDefault();
     return;
@@ -781,7 +761,26 @@ function stopTalking(e) {
   e.preventDefault();
 }
 
-// Pointer & Touch handlers
+// NEW: dedicated tap handler for toggling the actionbar in PTT OFF mode
+function handleTouchTargetClick(e) {
+  // Only toggle when PTT is OFF
+  if (window.isPTTOn) return;
+
+  // Do not allow hiding/showing if any actionbar button is active
+  if (isAnyActionbarButtonActive()) return;
+
+  actionbarVisible = !actionbarVisible;
+  applyActionbarVisibility();
+
+  if (actionbarVisible) {
+    scheduleAutoHide();
+  } else if (actionbarHideTimer) {
+    clearTimeout(actionbarHideTimer);
+    actionbarHideTimer = null;
+  }
+}
+
+// Pointer & Touch handlers (for PTT ON behavior)
 if (touchTarget) {
   touchTarget.addEventListener("pointerdown",  startTalking);
   touchTarget.addEventListener("pointerup",    stopTalking);
@@ -790,8 +789,10 @@ if (touchTarget) {
   touchTarget.addEventListener("touchstart",   startTalking, { passive: false });
   touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
   touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
-}
 
+  // Tap-to-toggle for PTT OFF (works on mobile + desktop)
+  touchTarget.addEventListener("click", handleTouchTargetClick);
+}
 
 
 /* ============================================================
@@ -822,3 +823,4 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     l.speed = 0;
   });
 }
+
