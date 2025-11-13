@@ -92,6 +92,14 @@ function drawWave(layer,width,height,alphaMultiplier=1){
 }
 
 const buttons = document.querySelectorAll(".icon-button");
+const actionbarText = document.querySelector(".actionbar-text");
+
+// ---------- NEW: set initial actionbar text based on platform ----------
+if (actionbarText) {
+  actionbarText.textContent = isMobile
+    ? "Press and hold screen to talk"
+    : "Hold spacebar to talk";
+}
 
 // ---------- NEW: Video resize function with centering ----------
 function resizeVideo() {
@@ -143,13 +151,6 @@ const video = document.getElementById("bgVideo");
 const touchTarget = document.getElementById("touchTarget");
 const talkPrompt = document.getElementById("talkPrompt");
 
-// ---------- NEW: set initial actionbar text based on platform ----------
-if (talkPrompt) {
-  talkPrompt.querySelector("div").textContent = isMobile
-    ? "Press and hold screen to talk"
-    : "Hold spacebar to talk";
-}
-
 function startConvo() {
   if(micInitialized) return;
   navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
@@ -181,12 +182,18 @@ startBtn.addEventListener("touchend", startConvo);
 function startTalking(e){
   isTalking = true;
   if(talkPrompt) talkPrompt.querySelector("div").textContent = "Release to send";
+  if (actionbarText) {
+    actionbarText.textContent = isMobile
+      ? "Release to send"
+      : "Release spacebar to send";
+  }
   e.preventDefault();
 }
 function stopTalking(e){
   isTalking = false;
-  if (talkPrompt) {
-    talkPrompt.querySelector("div").textContent = isMobile
+  if(talkPrompt) talkPrompt.querySelector("div").textContent = "Press and hold screen to talk";
+  if (actionbarText) {
+    actionbarText.textContent = isMobile
       ? "Press and hold screen to talk"
       : "Hold spacebar to talk";
   }
@@ -202,3 +209,29 @@ touchTarget.addEventListener("pointercancel", stopTalking);
 touchTarget.addEventListener("touchstart", startTalking, {passive:false});
 touchTarget.addEventListener("touchend", stopTalking, {passive:false});
 touchTarget.addEventListener("touchcancel", stopTalking, {passive:false});
+
+/* ---------- On Hold ---------- */
+const pauseBtn = document.getElementById("pauseBtn");
+const scrim = document.getElementById("onHoldScrim");
+const pauseIcon = pauseBtn.querySelector("img");
+
+let isOnHold = false;
+
+pauseBtn.addEventListener("click", () => {
+  isOnHold = !isOnHold;
+
+  if (isOnHold) {
+    // Enter On Hold
+    scrim.style.display = "block";
+    pauseBtn.classList.add("on-hold");
+    pauseIcon.src = "../icons/bold/play.svg";   // ✅ swap to play icon
+    actionbarText.textContent = "On hold";
+  } else {
+    // Exit On Hold
+    scrim.style.display = "none";
+    pauseBtn.classList.remove("on-hold");
+    pauseIcon.src = "../icons/linear/pause.svg"; // ✅ swap back to pause icon
+    actionbarText.textContent =
+      isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk";
+  }
+});

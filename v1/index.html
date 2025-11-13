@@ -1,168 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>V1 - Prompt in Actionbar</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <title>V1 - Prompt Above Action Bar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-  <!-- =========================================================
-       START SCREEN (Mic permission gate)
-       ========================================================= -->
-  <div id="startScreen">
-    <button id="startBtn">Start Conversation</button>
+
+<div id="startScreen">
+  <button id="startBtn">Start Conversation</button>
+</div>
+
+<div id="agentScreen" style="display:none;">
+  <video id="bgVideo" src="../therapist_silent_30.mp4" autoplay loop muted playsinline></video>
+
+  <!-- Fullscreen invisible touch target -->
+  <div id="touchTarget"></div>
+
+  <div id="onHoldScrim"></div> 
+
+  <!-- Prompt above action bar -->
+  <div id="talkPrompt">
+    <div>Press and hold screen to talk</div>
   </div>
 
-  <!-- =========================================================
-       AGENT SCREEN (Main experience)
-       - Initially hidden until mic permission is granted
-       ========================================================= -->
-  <div id="agentScreen" style="display:none;">
-    <!-- Background video -->
-    <video id="bgVideo" src="../therapist_silent_30.mp4" autoplay loop muted playsinline></video>
+  <div class="actionbar">
+    <canvas id="wave"></canvas>
+    <div class="icon-button" id="pauseBtn"><img src="../icons/linear/pause.svg" alt="Pause"></div>
+    <div class="icon-button" id="moreBtn"><img src="../icons/linear/more.svg" alt="More"></div>
+  </div>
 
-    <!-- Fullscreen invisible touch target (for press-and-hold PTT) -->
-    <div id="touchTarget"></div>
+  <div id="moreMenu">
+    <div class="more-menu-container">
+      <div class="more-menu-content">
 
-    <!-- On-hold scrim overlay (dim background when paused) -->
-    <div id="onHoldScrim"></div>
+        <!-- Group A -->
+        <div class="more-group">
 
-    <!-- =======================================================
-         PROMPTS
-         - #talkPrompt: floating bubble above action bar (PTT OFF)
-         - .actionbar-text: inline text inside the action bar (PTT ON)
-         ======================================================= -->
-
-    <!-- Prompt above action bar (used when PTT is OFF / open mic) -->
-    <div id="talkPrompt">
-      <div></div>
-    </div>
-
-    <!-- =======================================================
-         ACTION BAR
-         - Waveform canvas
-         - Pause button
-         - Mute button (only visible when PTT is OFF)
-         - Action text (PTT instructions / status)
-         - More menu entry point
-         ======================================================= -->
-    <div class="actionbar">
-      <!-- Reactive waveform background -->
-      <canvas id="wave"></canvas>
-
-      <!-- Pause / On hold -->
-      <div class="icon-button" id="pauseBtn">
-        <img src="../icons/linear/pause.svg" alt="Pause" />
-      </div>
-
-      <!-- Mute (shown only when PTT is OFF; default is hidden) -->
-      <div class="icon-button" id="muteBtn" style="display:none;">
-        <img src="../icons/linear/live_mic.svg" alt="Mute" />
-      </div>
-
-      <!-- Prompt text inside the action bar (PTT ON mode) -->
-      <div class="actionbar-text">
-        Press and hold screen to talk
-      </div>
-
-      <!-- More menu trigger -->
-      <div class="icon-button" id="moreBtn">
-        <img src="../icons/linear/more.svg" alt="More" />
-      </div>
-    </div>
-
-    <!-- =======================================================
-         MORE MENU (Glass panel above the action bar)
-         ======================================================= -->
-    <div id="moreMenu">
-      <div class="more-menu-container">
-        <div class="more-menu-content">
-
-          <!-- ------------------ GROUP A ------------------- -->
-          <div class="more-group">
-
-            <!-- Share Feedback -->
-            <div class="more-item-row">
-              <div class="more-item">
-                <div class="icon-list-item">
-                  <img src="../icons/linear/feedback.svg" alt="Share Feedback" />
-                </div>
-                <div class="more-label">Share Feedback</div>
+          <div class="more-item-row">
+            <div class="more-item">
+              <div class="icon-list-item">
+                <img src="../icons/linear/feedback.svg" alt="Share Feedback">
               </div>
-            </div>
-
-            <!-- Speakers -->
-            <div class="more-item-row">
-              <div class="more-item flex-1">
-                <div class="icon-list-item">
-                  <img src="../icons/linear/audio_on.svg" alt="Speakers" />
-                </div>
-                <div class="more-label">Speakers</div>
-              </div>
-              <div class="more-value">AirPods</div>
-            </div>
-
-            <!-- Language -->
-            <div class="more-item-row">
-              <div class="more-item flex-1">
-                <div class="icon-list-item">
-                  <img src="../icons/linear/global.svg" alt="Language" />
-                </div>
-                <div class="more-label">Language</div>
-              </div>
-              <div class="more-value">English</div>
-            </div>
-
-            <!-- Push-to-talk (PTT) toggle row -->
-            <div class="more-item-row ptt-row">
-              <div class="more-item flex-1">
-                <div class="icon-list-item">
-                  <img src="../icons/linear/microphone.svg" alt="Push-to-talk" />
-                </div>
-                <div class="more-label">Push-to-talk</div>
-              </div>
-
-              <!-- Toggle Switch (ON is default) -->
-              <div class="toggle-switch" data-toggle="On">
-                <div class="toggle-knob"></div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Divider between groups -->
-          <div class="more-divider"></div>
-
-          <!-- ------------------ GROUP B ------------------- -->
-          <div class="more-group">
-            <!-- End Call -->
-            <div class="more-item-row">
-              <div class="more-item">
-                <div class="icon-list-item">
-                  <img src="../icons/linear/call_slash.svg" alt="End Call" />
-                </div>
-                <div class="more-label">End Call</div>
-              </div>
+              <div class="more-label">Share Feedback</div>
             </div>
           </div>
 
-        </div> <!-- /.more-menu-content -->
-      </div>   <!-- /.more-menu-container -->
-    </div>     <!-- /#moreMenu -->
-  </div>       <!-- /#agentScreen -->
+          <div class="more-item-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/audio_on.svg" alt="Speakers">
+              </div>
+              <div class="more-label">Speakers</div>
+            </div>
+            <div class="more-value">AirPods</div>
+          </div>
 
-  <!-- =========================================================
-       SCRIPTS
-       - Load order matters; keep as-is.
-       ========================================================= -->
-  <script src="js/mic-permissions.js"></script>
-  <script src="js/video.js"></script>
-  <script src="js/wave.js"></script>
-  <script src="js/pause.js"></script>
-  <script src="js/mute.js"></script>
-  <script src="js/more.js"></script>
+          <div class="more-item-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/global.svg" alt="Language">
+              </div>
+              <div class="more-label">Language</div>
+            </div>
+            <div class="more-value">English</div>
+          </div>
+
+          <div class="more-item-row ptt-row">
+            <div class="more-item flex-1">
+              <div class="icon-list-item">
+                <img src="../icons/linear/microphone.svg" alt="Push-to-talk">
+              </div>
+              <div class="more-label">Push-to-talk</div>
+            </div>
+
+            <!-- Toggle Switch -->
+            <div class="toggle-switch" data-toggle="On">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Divider -->
+        <div class="more-divider"></div>
+
+        <!-- Group B -->
+        <div class="more-group">
+          <div class="more-item-row">
+            <div class="more-item">
+              <div class="icon-list-item">
+                <img src="../icons/linear/call_slash.svg" alt="End Call">
+              </div>
+              <div class="more-label">End Call</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/mic-permissions.js"></script>
+<script src="js/wave.js"></script>
+<script src="js/video.js"></script>
+<script src="js/pause.js"></script>
+<script src="js/more.js"></script>
 </body>
 </html>

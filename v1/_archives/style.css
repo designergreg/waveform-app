@@ -79,33 +79,18 @@ canvas#wave {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100vw - 32px);
-  max-width: 408px;
+  width: calc(100vw - 32px);     /* ✅ dynamic width */
+  max-width: 408px;              /* ✅ cap at 408px */
   height: 60px;
   border-radius: 30px;
   background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
-  justify-content: center; /* center everything */
+  justify-content: space-between;
   padding: 0 6px;
   overflow: hidden;
   z-index: 1;
   pointer-events: auto;
-  gap: 12px; /* ensures spacing between flex items */
-}
-
-.actionbar-text {
-  flex: 1;               /* text takes remaining space */
-  min-width: 0;          /* allow shrinking and wrapping */
-  color: white;
-  font-size: 15px;
-  font-family: Inter, sans-serif;
-  font-weight: 400;
-  line-height: 18px;
-  letter-spacing: 0.5px;
-  text-align: center;
-  white-space: normal;   /* allow wrapping */
-  overflow-wrap: break-word;
 }
 
 .icon-button {
@@ -153,13 +138,137 @@ canvas#wave {
   background: #1F4C7D !important;
 }
 
+
+/* ---------- More Menu ---------- */
+/* --- Overall Container Positioning --- */
+#moreMenu {
+  display: none;
+  position: fixed;
+  z-index: 5;
+
+  bottom: calc(60px + 20px + 4px);
+  right: calc(50vw - (min(408px, calc(100vw - 32px)) / 2) + 6px);
+
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#moreMenu.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Glass Panel --- */
+.more-menu-container {
+  width: 252px;
+  padding: 16px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.more-menu-content {
+  width: 252px;
+  background-color: red;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Item Structure --- */
+/* Exactly 48px tall, exactly 252px wide */
+.more-item-row {
+  background: rgba(0, 255, 0, 0.7);
+  width: 252px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  padding: 0 4px 0 4px;
+}
+
+/* Label on left */
+.more-label {
+  font-size: 15px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0.25px;
+  color: #FBFBFB;
+  white-space: nowrap;
+
+  display: flex;
+  align-items: center;
+}
+
+/* Right-side subtitles: AirPods / English */
+.more-value {
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 13px;
+  font-family: Inter;
+  font-weight: 600;
+  line-height: 18.2px;
+  letter-spacing: 0.25px;
+  white-space: nowrap;
+}
+
+/* Icon + label grouping */
+.more-item {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Divider spacing: 8px above and below */
+.more-divider {
+  height: 1px;
+  background: #303334;
+  width: 100%;
+  margin: 8px 0;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 44px;
+  height: 24px;
+  position: relative;
+  background: #1F4C7D;
+  border-radius: 999px;
+  outline: 1px #1F4C7D solid;
+  outline-offset: -1px;
+  overflow: hidden;
+}
+
+.toggle-knob {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  left: 20px;
+  top: 0;
+  background: white;
+  border-radius: 1000px;
+  border: 2px #1F4C7D solid;
+}
+
+/* Icon sizing */
+.icon-list-item img {
+  width: 20px;
+  height: 20px;
+}
+
+
+
 /* ---------- Talk Prompt ---------- */
 #talkPrompt {
   display: flex; /* block-level flex, not inline */
   justify-content: center;
   align-items: center;
-  padding: 12px 20px;
-  border-radius: 999px;
+  padding: 12px 16px;
+  border-radius: 12px;
   background: rgba(0,0,0,0.4);
   position: fixed;
   bottom: 88px;
