@@ -108,6 +108,8 @@ canvas#wave {
   overflow: hidden;
   z-index: 1;
   pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.25s ease;
 }
 
 /* Main prompt text in action bar */

@@ -70,17 +70,16 @@ function renderPrompt() {
     actionbarTextEl.textContent = msg;
 
     talkPromptTextEl.textContent = "";
-    talkPromptEl.style.display = "none";
+    talkPromptEl.style.display   = "none";
   } else {
     // PTT OFF → talkPrompt owns the prompt
-    actionbarTextEl.textContent = "";
+    actionbarTextEl.textContent   = "";
     actionbarTextEl.style.display = "none";
 
     talkPromptTextEl.textContent = msg;
-    talkPromptEl.style.display = msg ? "block" : "none";
+    talkPromptEl.style.display   = msg ? "block" : "none";
   }
 }
-
 
 /* Public helpers other scripts can call */
 window.setPromptText = function (msg) {
@@ -156,7 +155,7 @@ function audioLoop() {
   // More sensitive curve for speech
   const scaled = Math.pow(rawRMS * RMS_MULT, RMS_EXP);
 
-  const ATTACK = 0.8;
+  const ATTACK  = 0.8;
   const RELEASE = 0.05;
 
   smoothedRMS = scaled > smoothedRMS
@@ -451,8 +450,8 @@ function fillLayer(layer, width, height, tMs, ampBase, alphaMul = 1) {
   ctx.closePath();
 
   // --- Dynamic color & alpha (warm when speaking, cool/dimmer at rest)
-  const warm       = warmCool(color, engage);
-  const baseAlpha  = alpha * alphaMul;
+  const warm         = warmCool(color, engage);
+  const baseAlpha    = alpha * alphaMul;
   const dynamicAlpha = clamp01(baseAlpha * (0.8 + 0.35 * engage)); // dimmer at rest, brighter when speaking
 
   ctx.fillStyle = hslToRgba(warm.H, warm.S, warm.L, dynamicAlpha);
@@ -462,7 +461,7 @@ function fillLayer(layer, width, height, tMs, ampBase, alphaMul = 1) {
   if (CREST_ALPHA > 0) {
     ctx.save();
     ctx.globalAlpha = CREST_ALPHA * alphaMul;
-    ctx.lineWidth = CREST_WIDTH;
+    ctx.lineWidth   = CREST_WIDTH;
     ctx.strokeStyle = hslToRgba(warm.H, warm.S, warm.L, 1);
 
     ctx.beginPath();
@@ -641,15 +640,125 @@ function stopTalking(e) {
   e.preventDefault();
 }
 
-// Pointer & Touch handlers
+// Pointer & Touch handlers (still used for PTT ON)
 if (touchTarget) {
-  touchTarget.addEventListener("pointerdown", startTalking);
-  touchTarget.addEventListener("pointerup",   stopTalking);
+  touchTarget.addEventListener("pointerdown",  startTalking);
+  touchTarget.addEventListener("pointerup",    stopTalking);
   touchTarget.addEventListener("pointercancel", stopTalking);
 
-  touchTarget.addEventListener("touchstart",  startTalking, { passive: false });
-  touchTarget.addEventListener("touchend",    stopTalking,  { passive: false });
-  touchTarget.addEventListener("touchcancel", stopTalking,  { passive: false });
+  touchTarget.addEventListener("touchstart",   startTalking, { passive: false });
+  touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
+  touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
+}
+
+
+/* ============================================================
+ * ACTIONBAR AUTO-HIDE (PTT OFF ONLY)
+ *
+ * Behavior:
+ *  - When PTT is OFF and no actionbar buttons are "selected":
+ *      - After 7s of no taps/clicks on the actionbar, auto-hide it.
+ *  - Tapping/clicking on the background toggles visibility.
+ *  - Any click on the actionbar itself counts as "activity" and
+ *    will re-show + restart the inactivity timer (if applicable).
+ *
+ * "Selected" means:
+ *  - pauseBtn has .on-hold
+ *  - muteBtn has .on-hold
+ *  - moreBtn has .more-open
+ * ============================================================ */
+
+const actionbarEl = document.querySelector(".actionbar");
+const muteBtnEl   = document.getElementById("muteBtn");
+const moreBtnEl   = document.getElementById("moreBtn");
+
+let actionbarHidden          = false;
+let actionbarInactivityTimer = null;
+const ACTIONBAR_AUTO_HIDE_MS = 7000;
+
+// Is any actionbar button currently in a "selected" state?
+function isAnyActionbarSelected() {
+  const pauseSelected = !!(pauseBtn && pauseBtn.classList.contains("on-hold"));
+  const muteSelected  = !!(muteBtnEl && muteBtnEl.classList.contains("on-hold"));
+  const moreOpen      = !!(moreBtnEl && moreBtnEl.classList.contains("more-open"));
+  return pauseSelected || muteSelected || moreOpen;
+}
+
+// Conditions under which auto-hide is allowed
+function shouldAutoHideActionbar() {
+  const pttOn = window.isPTTOn !== false; // default true if undefined
+  return !pttOn && !isAnyActionbarSelected();
+}
+
+function showActionbar() {
+  if (!actionbarEl) return;
+  actionbarHidden = false;
+  actionbarEl.style.opacity       = "1";
+  actionbarEl.style.pointerEvents = "auto";
+}
+
+function hideActionbar() {
+  if (!actionbarEl) return;
+  actionbarHidden = true;
+  actionbarEl.style.opacity       = "0";
+  actionbarEl.style.pointerEvents = "none";
+}
+
+function scheduleActionbarAutoHide() {
+  if (!actionbarEl) return;
+  clearTimeout(actionbarInactivityTimer);
+
+  if (!shouldAutoHideActionbar()) return;
+
+  actionbarInactivityTimer = setTimeout(() => {
+    if (shouldAutoHideActionbar()) {
+      hideActionbar();
+    }
+  }, ACTIONBAR_AUTO_HIDE_MS);
+}
+
+// Public helper so other modules (e.g. more.js) can nudge the timer
+window.resetActionbarInactivity = function () {
+  if (!actionbarEl) return;
+  showActionbar();
+  clearTimeout(actionbarInactivityTimer);
+  if (shouldAutoHideActionbar()) {
+    scheduleActionbarAutoHide();
+  }
+};
+
+/* 1) Any click on the actionbar counts as "activity"
+ *    and (if allowed) will restart the inactivity timer.
+ */
+if (actionbarEl) {
+  actionbarEl.addEventListener("click", () => {
+    if (shouldAutoHideActionbar()) {
+      window.resetActionbarInactivity();
+    } else {
+      // Not in auto-hide mode → keep visible and cancel timer
+      showActionbar();
+      clearTimeout(actionbarInactivityTimer);
+    }
+  });
+}
+
+/* 2) Tapping/clicking the background (touchTarget) toggles
+ *    actionbar visibility when:
+ *      - PTT is OFF
+ *      - no actionbar buttons are selected
+ */
+if (touchTarget) {
+  touchTarget.addEventListener("click", () => {
+    if (!shouldAutoHideActionbar()) return;
+
+    if (actionbarHidden) {
+      showActionbar();
+      window.resetActionbarInactivity();
+    } else {
+      hideActionbar();
+      clearTimeout(actionbarInactivityTimer);
+    }
+  });
 }
 
 
