@@ -717,15 +717,16 @@ if (talkPrompt) {
   talkPrompt.style.display = "none";
 }
 
-// PTT ON: press-and-hold to talk (as before)
+// PTT ON: press-and-hold to talk
+// PTT OFF: don't do anything here; tap handling happens on release (stopTalking)
 function startTalking(e) {
-  // In PTT OFF mode, we do NOT use this handler to toggle the bar anymore.
-  // That’s now handled by a separate click handler below.
   if (!window.isPTTOn) {
-    e.preventDefault();
+    // Open-mic mode → we don't start PTT or block the event here.
+    // Let stopTalking handle tap-to-toggle on release.
     return;
   }
 
+  // Normal PTT ON behavior
   if (isOnHold) {
     e.preventDefault();
     return; // block touch PTT during hold
@@ -735,24 +736,39 @@ function startTalking(e) {
   hasStartedTalking = true; // show waveform only after first PTT
 
   // Only change prompts in PTT ON mode
-  if (window.isPTTOn && typeof window.setPromptText === "function") {
+  if (typeof window.setPromptText === "function") {
     window.setPromptText("Release to send");
   }
 
   e.preventDefault();
 }
 
+
 function stopTalking(e) {
-  // In open-mic mode (PTT OFF) we don't handle toggling here anymore.
+  // 🔹 PTT OFF (open-mic) → use release/tap to toggle the actionbar
   if (!window.isPTTOn) {
+    // Do NOT toggle if any actionbar button/menu is "active"
+    if (!isAnyActionbarButtonActive()) {
+      actionbarVisible = !actionbarVisible;
+      applyActionbarVisibility();
+
+      if (actionbarVisible) {
+        // When re-shown, restart auto-hide countdown
+        scheduleAutoHide();
+      } else if (actionbarHideTimer) {
+        clearTimeout(actionbarHideTimer);
+        actionbarHideTimer = null;
+      }
+    }
+
     e.preventDefault();
     return;
   }
 
+  // 🔹 PTT ON behavior (original)
   isTalking = false;
 
-  // Only change prompts in PTT ON mode
-  if (window.isPTTOn && typeof window.setPromptText === "function") {
+  if (typeof window.setPromptText === "function") {
     window.setPromptText(
       isMobile ? "Press and hold screen to talk" : "Hold spacebar to talk"
     );
@@ -760,6 +776,7 @@ function stopTalking(e) {
 
   e.preventDefault();
 }
+
 
 // NEW: dedicated tap handler for toggling the actionbar in PTT OFF mode
 function handleTouchTargetClick(e) {
@@ -789,10 +806,8 @@ if (touchTarget) {
   touchTarget.addEventListener("touchstart",   startTalking, { passive: false });
   touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
   touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
-
-  // Tap-to-toggle for PTT OFF (works on mobile + desktop)
-  touchTarget.addEventListener("click", handleTouchTargetClick);
 }
+
 
 
 /* ============================================================
