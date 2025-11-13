@@ -157,6 +157,9 @@ canvas#wave {
 .icon-button.on-hold {
   background: #333C74 !important;
 }
+.icon-button.muted {
+  background: #333C74 !important;
+}
 
 /* More button selected/open state (when menu open) */
 #moreBtn.more-open {
@@ -441,7 +444,8 @@ body.ptt-off .icon-button {
 }
 
 /* Selected state (e.g. pause/on-hold) still blue in PTT OFF */
-body.ptt-off .icon-button.on-hold {
+body.ptt-off .icon-button.on-hold,
+body.ptt-off .icon-button.muted {
   background: #333C74 !important;
 }
 

@@ -66,7 +66,7 @@
     window.isMicMuted = isMuted;
 
     // Button “selected” background (reuse .on-hold style)
-    muteBtn.classList.toggle("on-hold", isMuted);
+    muteBtn.classList.toggle("muted",  isMuted);
     muteBtn.setAttribute("aria-pressed", String(isMuted));
 
     // Swap icon
