@@ -63,4 +63,21 @@
   document.addEventListener("pointerdown", outsidePressHandler, { passive: true });
   moreMenu.addEventListener("pointerdown", (e) => e.stopPropagation());
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+
+// --- Push-to-talk toggle (visual only) ---
+const pttRow    = moreMenu.querySelector(".ptt-row");
+const pttToggle = moreMenu.querySelector(".toggle-switch");
+
+if (pttRow && pttToggle) {
+  pttRow.addEventListener("pointerdown", (e) => {
+    // Prevent the menu from closing or selecting text
+    e.stopPropagation();
+    e.preventDefault();
+
+    const isNowOff = pttToggle.classList.toggle("off");
+    pttToggle.setAttribute("data-toggle", isNowOff ? "Off" : "On");
+  });
+}
+
+
 })();

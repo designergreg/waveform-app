@@ -266,7 +266,7 @@ canvas#wave {
 }
 
 
-/* Toggle Switch */
+/* Toggle Switch – ON is the default visual state */
 .toggle-switch {
   flex: 0 0 44px;
   height: 24px;
@@ -275,22 +275,35 @@ canvas#wave {
   justify-content: flex-end;
   box-sizing: border-box;
   position: relative;
-  background: #1F4C7D;
+  background: #1F4C7D;        /* ON color */
   border-radius: 999px;
   outline-offset: -1px;
   overflow: hidden;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-/* Small bug: missing unit */
+/* Knob (ON position by default) */
 .toggle-knob {
   width: 18px;
   height: 18px;
   position: absolute;
-  left: 23px;
-  top: 3px; /* <-- add px */
+  left: 23px;                 /* ON = right side */
+  top: 3px;
   background: white;
   border-radius: 1000px;
+  transition: left 0.15s ease;
 }
+
+/* OFF state */
+.toggle-switch.off {
+  background: #737373;        /* OFF color */
+}
+
+.toggle-switch.off .toggle-knob {
+  left: 3px;                  /* OFF = left side */
+}
+
 
 /* Icon wrapper: ensure it's not mis-aligned by image size */
 .icon-list-item {
