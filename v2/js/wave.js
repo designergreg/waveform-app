@@ -753,30 +753,10 @@ function startTalking(e) {
 
 
 function stopTalking(e) {
-  // 🔹 PTT OFF (open-mic) → use release/tap to toggle the actionbar
+  // Only meaningful when PTT is ON
   if (!window.isPTTOn) {
-    // If an outside-tap just closed the More menu, ignore this release
-    if (suppressNextTapToggle) {
-      suppressNextTapToggle = false; // consume the suppression
-      e.preventDefault();
-      return;
-    }
-
-    // Do NOT toggle if any actionbar button/menu is "active"
-    if (!isAnyActionbarButtonActive()) {
-      actionbarVisible = !actionbarVisible;
-      applyActionbarVisibility();
-
-      if (actionbarVisible) {
-        // When re-shown, restart auto-hide countdown
-        scheduleAutoHide();
-      } else if (actionbarHideTimer) {
-        clearTimeout(actionbarHideTimer);
-        actionbarHideTimer = null;
-      }
-    }
-
-    e.preventDefault();
+    // In open-mic mode, we don't do anything on release;
+    // background taps are handled by the click handler below.
     return;
   }
 
@@ -793,24 +773,33 @@ function stopTalking(e) {
 }
 
 
-// NEW: dedicated tap handler for toggling the actionbar in PTT OFF mode
+
+// Dedicated tap handler for toggling the actionbar in PTT OFF mode
 function handleTouchTargetClick(e) {
   // Only toggle when PTT is OFF
   if (window.isPTTOn) return;
 
-  // Do not allow hiding/showing if any actionbar button is active
+  // If an outside-tap just closed the More menu, ignore this one
+  if (suppressNextTapToggle) {
+    suppressNextTapToggle = false; // consume the suppression
+    return;
+  }
+
+  // Do not allow hiding/showing if any actionbar button/menu is active
   if (isAnyActionbarButtonActive()) return;
 
   actionbarVisible = !actionbarVisible;
   applyActionbarVisibility();
 
   if (actionbarVisible) {
+    // When re-shown, restart auto-hide countdown
     scheduleAutoHide();
   } else if (actionbarHideTimer) {
     clearTimeout(actionbarHideTimer);
     actionbarHideTimer = null;
   }
 }
+
 
 // Pointer & Touch handlers (for PTT ON behavior)
 if (touchTarget) {
@@ -821,7 +810,11 @@ if (touchTarget) {
   touchTarget.addEventListener("touchstart",   startTalking, { passive: false });
   touchTarget.addEventListener("touchend",     stopTalking,  { passive: false });
   touchTarget.addEventListener("touchcancel",  stopTalking,  { passive: false });
+
+  // Tap-to-toggle for PTT OFF (mobile + desktop, via click)
+  touchTarget.addEventListener("click", handleTouchTargetClick);
 }
+
 
 
 
