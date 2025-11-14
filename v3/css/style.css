@@ -73,18 +73,20 @@ html, body {
   touch-action: none;  /* allow preventing default for touch */
 }
 
-/* Waveform canvas sits inside actionbar */
+/* Waveform canvas sits inside actionbar, always centered */
 canvas#wave {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  width: min(500px, calc(100vw - 32px)); /* same width as expanded bar */
   height: 100%;
   z-index: 0;
   pointer-events: none;
   touch-action: none;
-  transform: none;
+  transform: translateX(-50%) scaleX(0.85) scaleY(1.5);
+
 }
+
 
 
 /* ============================================================
@@ -110,7 +112,7 @@ canvas#wave {
   z-index: 1;
   pointer-events: auto;
   opacity: 1;
-  transition: opacity 0.25s ease;
+  transition: width 0.35s ease-in-out, padding 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
 /* Main prompt text in action bar */
@@ -134,7 +136,6 @@ canvas#wave {
   justify-content: center;
   padding-left: 0;
   padding-right: 0;
-  transition: width 0.2s ease, padding 0.2s ease;
 }
 
 /* Hide buttons + inline text when collapsed; the wave stays visible */
@@ -146,15 +147,6 @@ canvas#wave {
 /* Hide mute specifically when collapsed (overrides inline display:flex) */
 .actionbar.collapsed #muteBtn {
   display: none !important;
-}
-
-/* 🔥 Keep the waveform at the expanded width and center it
-   so the circle acts like a "window" over the middle of the wave */
-.actionbar.collapsed canvas#wave {
-  width: min(408px, calc(100vw - 32px));  /* keep drawing full-width */
-  left: 50%;
-  transform-origin: center;               /* scale around the middle */
-  transform: translateX(-50%) scaleX(0.85) scaleY(1.5);
 }
 
 
