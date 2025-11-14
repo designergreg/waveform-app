@@ -423,6 +423,14 @@ let actionbarVisible   = true;              // source of truth for visibility
 let actionbarHideTimer = null;
 const AUTO_HIDE_MS     = 7000;
 
+// When true, the next tap/release on touchTarget in PTT-OFF mode
+// will NOT toggle the actionbar.
+let suppressNextTapToggle = false;
+
+window.suppressNextTapToggle = function () {
+  suppressNextTapToggle = true;
+};
+
 // Check if any actionbar button is "selected"
 function isAnyActionbarButtonActive() {
   const pause = document.getElementById("pauseBtn");
@@ -447,35 +455,35 @@ function applyActionbarVisibility() {
 
 // Schedules/cancels auto-hide based on current state
 function scheduleAutoHide() {
-  // if (!actionbar) return;
+  if (!actionbar) return;
 
   // Only auto-hide when:
   //  - PTT is OFF
   //  - no buttons are active
-  // if (window.isPTTOn || isAnyActionbarButtonActive()) {
-  //   if (actionbarHideTimer) {
-  //     clearTimeout(actionbarHideTimer);
-  //     actionbarHideTimer = null;
-  //   }
-  //   // If we just turned PTT ON while hidden, bring the bar back
-  //   if (window.isPTTOn && !actionbarVisible) {
-  //     actionbarVisible = true;
-  //     applyActionbarVisibility();
-  //   }
-  //   return;
-  // }
+  if (window.isPTTOn || isAnyActionbarButtonActive()) {
+    if (actionbarHideTimer) {
+      clearTimeout(actionbarHideTimer);
+      actionbarHideTimer = null;
+    }
+    // If we just turned PTT ON while hidden, bring the bar back
+    if (window.isPTTOn && !actionbarVisible) {
+      actionbarVisible = true;
+      applyActionbarVisibility();
+    }
+    return;
+  }
 
   // If there's already a timer running, don't restart it
-  // if (actionbarHideTimer) return;
+  if (actionbarHideTimer) return;
 
-  // actionbarHideTimer = setTimeout(() => {
+  actionbarHideTimer = setTimeout(() => {
     // Re-check conditions at fire time
-  //   if (!window.isPTTOn && !isAnyActionbarButtonActive() && actionbarVisible) {
-  //     actionbarVisible = false;
-  //     applyActionbarVisibility();
-  //   }
-  //   actionbarHideTimer = null;
-  // }, AUTO_HIDE_MS);
+    if (!window.isPTTOn && !isAnyActionbarButtonActive() && actionbarVisible) {
+      actionbarVisible = false;
+      applyActionbarVisibility();
+    }
+    actionbarHideTimer = null;
+  }, AUTO_HIDE_MS);
 }
 
 // Public helpers for other scripts (pause.js, mute.js, more.js)
@@ -747,6 +755,13 @@ function startTalking(e) {
 function stopTalking(e) {
   // 🔹 PTT OFF (open-mic) → use release/tap to toggle the actionbar
   if (!window.isPTTOn) {
+    // If an outside-tap just closed the More menu, ignore this release
+    if (suppressNextTapToggle) {
+      suppressNextTapToggle = false; // consume the suppression
+      e.preventDefault();
+      return;
+    }
+
     // Do NOT toggle if any actionbar button/menu is "active"
     if (!isAnyActionbarButtonActive()) {
       actionbarVisible = !actionbarVisible;
