@@ -1,0 +1,489 @@
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: sans-serif;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Start / Agent screens occupy full viewport */
+#startScreen,
+#agentScreen {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Start screen CTA / gradient background */
+#startScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3954A7 0%, #305E7C 100%);
+}
+
+#startBtn {
+  padding: 20px 40px;
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  background: white;
+  color: #1F465D;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Agent screen is shown after start */
+#agentScreen {
+  display: none;
+}
+
+/* Background video fills viewport */
+#bgVideo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* Full-screen invisible touch target for PTT */
+#touchTarget {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0.5;   /* above video (-2) but below actionbar (1) */
+  background: transparent;
+  touch-action: none;  /* allow preventing default for touch */
+}
+
+/* Waveform canvas sits inside actionbar */
+canvas#wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  touch-action: none;
+  transform: none;
+}
+
+
+/* ============================================================
+   ACTION BAR & ICON BUTTONS
+   ============================================================ */
+
+/* Floating action bar */
+.actionbar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);   /* dynamic width */
+  max-width: 408px;            /* cap width */
+  height: 60px;
+  border-radius: 30px;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+/* Main prompt text in action bar */
+.actionbar-text {
+  flex: 1;                     /* text takes remaining space */
+  min-width: 0;                /* allow shrinking and wrapping */
+  color: white;
+  font-size: 15px;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  white-space: normal;         /* allow wrapping */
+  overflow-wrap: break-word;
+}
+
+/* V3: collapsed / compact voice indicator state */
+.actionbar.collapsed {
+  width: 60px;
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  transition: width 0.2s ease, padding 0.2s ease;
+}
+
+/* Hide buttons + inline text when collapsed; the wave stays visible */
+.actionbar.collapsed .icon-button,
+.actionbar.collapsed .actionbar-text {
+  display: none;
+}
+
+/* Hide mute specifically when collapsed (overrides inline display:flex) */
+.actionbar.collapsed #muteBtn {
+  display: none !important;
+}
+
+/* 🔥 Keep the waveform at the expanded width and center it
+   so the circle acts like a "window" over the middle of the wave */
+.actionbar.collapsed canvas#wave {
+  width: min(408px, calc(100vw - 32px));  /* keep drawing full-width */
+  left: 50%;
+  transform-origin: center;               /* scale around the middle */
+  transform: translateX(-50%) scaleX(0.85) scaleY(1.5);
+}
+
+
+
+
+/* Circular icon buttons (Pause, Mute, More) */
+.icon-button {
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Icon SVGs inside buttons */
+.icon-button img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+/* Pause button selected state (on hold) */
+.icon-button.on-hold {
+  background: #333C74 !important;
+}
+.icon-button.muted {
+  background: #333C74 !important;
+}
+
+/* More button selected/open state (when menu open) */
+#moreBtn.more-open {
+  background: #333C74;
+}
+
+/* Mute button default visibility (toggled by JS) */
+#muteBtn {
+  display: none; /* hidden until PTT is OFF */
+}
+
+
+/* ============================================================
+   ON HOLD SCRIM
+   ============================================================ */
+
+#onHoldScrim {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4); /* 40% black overlay */
+  z-index: 0.75;               /* above video, below actionbar */
+  display: none;
+}
+
+
+/* ============================================================
+   MORE MENU (POPOVER)
+   ============================================================ */
+
+/* Menu position relative to actionbar */
+#moreMenu {
+  display: none;
+  position: fixed;
+  z-index: 5;
+  bottom: calc(60px + 20px + 4px);
+  right: calc(50vw - (min(408px, calc(100vw - 32px)) / 2) + 6px);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Menu "open" animation */
+#moreMenu.open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Glassy menu container */
+.more-menu-container {
+  box-sizing: border-box;
+  width: 276px;
+  padding: 16px 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Stack menu rows vertically */
+.more-menu-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A single row in the More menu */
+.more-item-row {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;  /* label & value flow horizontally */
+  gap: 8px;
+  padding: 0 8px;               /* row’s own left/right padding */
+}
+
+/* Base hover for rows */
+.more-item-row:hover {
+  background: #333C74;
+  cursor: pointer;
+}
+
+/* EXCEPTION: Push-to-talk row is informational; no highlight */
+.more-item-row.ptt-row:hover {
+  background: none;
+  cursor: default;
+}
+
+/* Left-side label text (e.g. "Speakers", "Language") */
+.more-label {
+  font-size: 15px;
+  font-family: Inter;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0.25px;
+  color: #FBFBFB;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+/* Right-side value text (e.g. "AirPods", "English") */
+.more-value {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.80);
+  font-size: 13px;
+  font-family: Inter;
+  font-weight: 600;
+  line-height: 18.2px;
+  letter-spacing: 0.25px;
+  white-space: nowrap;
+}
+
+/* Inner flex container for each menu item */
+.more-item {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 4px;
+  padding-right: 8px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Divider between menu groups */
+.more-divider {
+  height: 1px;
+  background: #303334;
+  width: 100%;
+  margin: 8px 0;
+}
+
+
+/* ============================================================
+   TOGGLE SWITCH (Push-to-talk in menu)
+   ============================================================ */
+
+/* Track */
+.toggle-switch {
+  flex: 0 0 48px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  position: relative;
+  background: #424C8A;   /* ON color */
+  border-radius: 999px;
+  outline-offset: -1px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+/* Knob (ON position by default → right side) */
+.toggle-knob {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  left: 24px;            /* ON = right side */
+  top: 4px;
+  background: white;
+  border-radius: 1000px;
+  transition: left 0.15s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* OFF state track color */
+.toggle-switch.off {
+  background: #737373;   /* OFF color */
+}
+
+/* OFF state: knob slides to left */
+.toggle-switch.off .toggle-knob {
+  left: 4px;             /* OFF = left side */
+}
+
+
+/* Icon wrapper for list icons inside More menu */
+.icon-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+}
+
+/* Icon sizing inside More menu */
+.icon-list-item img {
+  height: 24px;
+  width: 24px;
+  display: block;
+}
+
+
+/* ============================================================
+   TALK PROMPT BUBBLE (ABOVE ACTION BAR)
+   ============================================================ */
+
+/* Container bubble above the action bar */
+#talkPrompt {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%) scale(1);
+  display: inline-flex;      /* shrink to content width */
+  align-items: center;
+  justify-content: center;
+
+  /* natural text width, clamped */
+  width: -moz-max-content;
+  width: -webkit-max-content;
+  width: max-content;
+  max-width: min(408px, calc(100vw - 32px));
+
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.4);
+  box-sizing: border-box;
+  transition: transform 0.25s ease;
+}
+
+/* Inner text inside talkPrompt */
+#talkPrompt > div {
+  color: #fff;
+  font: 500 16px/22.4px Inter, sans-serif;
+  letter-spacing: 0.25px;
+  text-align: center;
+  white-space: normal;      /* allow wrapping when constrained */
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+
+/* ============================================================
+   DESKTOP HOVER STATES
+   ============================================================ */
+
+@media (hover: hover) and (pointer: fine) {
+  /* More menu rows highlight on hover */
+  .more-item-row:hover {
+    background: #333C74;
+    cursor: pointer;
+  }
+
+  /* All icon buttons get a hover state on desktop (PTT on/off) */
+  .icon-button:hover {
+    background: #333C74 !important;
+  }
+}
+
+
+
+/* ============================================================
+   PTT OFF MODE UI (body.ptt-off)
+   ============================================================ */
+
+/* Actionbar darker background when PTT is OFF */
+body.ptt-off .actionbar {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* Icon buttons are transparent by default when PTT is OFF */
+body.ptt-off .icon-button {
+  background: transparent;
+  backdrop-filter: none;
+}
+
+/* Hover state still active for icon buttons when PTT is OFF (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  body.ptt-off .icon-button:hover {
+    background: #333C74 !important;
+  }
+}
+
+/* Selected state (e.g. pause/on-hold) still blue in PTT OFF */
+body.ptt-off .icon-button.on-hold,
+body.ptt-off .icon-button.muted {
+  background: #333C74 !important;
+}
+
+/* Mute button defaults to transparent in PTT OFF mode */
+body.ptt-off #muteBtn {
+  background: transparent;
+  backdrop-filter: none;
+}
