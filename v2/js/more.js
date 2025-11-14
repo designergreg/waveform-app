@@ -124,20 +124,26 @@
 
   function outsidePressHandler(e) {
     if (!menuOpen) return;
+
     const insideMenu = moreMenu.contains(e.target);
     const onButton   = moreBtn && moreBtn.contains(e.target);
+
     if (!insideMenu && !onButton) {
       closeMenu();
 
-      // If we closed the menu by tapping the background, tell wave.js
-      // to ignore the *very next* touchTarget release so it doesn't
-      // also hide the actionbar.
-      if (typeof window.suppressNextTapToggle === "function") {
+      // ✅ Only apply the "suppress next tap" logic for TOUCH input,
+      // so desktop (mouse) clicks don't get their next background
+      // click eaten.
+      const isTouchPointer =
+        e.pointerType === "touch" ||
+        (typeof TouchEvent !== "undefined" && e instanceof TouchEvent);
+
+      if (isTouchPointer && typeof window.suppressNextTapToggle === "function") {
         window.suppressNextTapToggle();
       }
     }
-
   }
+
 
   document.addEventListener("pointerdown", outsidePressHandler, {
     passive: true,
