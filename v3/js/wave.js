@@ -534,17 +534,8 @@ function fillLayer(layer, width, height, tMs, ampBase, alphaMul = 1) {
     layer.band === "mid"  ? band.mid  :
     band.high;
 
-  // Are we in the compact 60x60 state? (PTT OFF + collapsed)
-  const isCollapsedCompact = !window.isPTTOn && !actionbarVisible;
-
-  // Slightly taller waves when collapsed so they feel less flat
-  const amplitudeScale = isCollapsedCompact ? 1.3 : 1.0;
-
-  const amplitude =
-    (IDLE_FLOOR + ampBase * (0.65 + 0.9 * bandBoost)) *
-    amp *
-    amplitudeScale;
-
+  // Amplitude combines: idle floor + global RMS + band emphasis
+  const amplitude = (IDLE_FLOOR + ampBase * (0.65 + 0.9 * bandBoost)) * amp;
 
   ctx.beginPath();
   ctx.moveTo(0, height);
@@ -886,4 +877,3 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     l.speed = 0;
   });
 }
-
