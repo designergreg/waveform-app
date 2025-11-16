@@ -719,7 +719,7 @@ function draw(ts = performance.now()) {
 
 const touchTarget = document.getElementById("touchTarget");
 const talkPrompt  = document.getElementById("talkPrompt");
-const video       = document.getElementById("bgVideo");
+const bgVideoEl   = document.getElementById("bgVideo");
 
 if (talkPrompt) {
   talkPrompt.style.display = "none";
@@ -830,8 +830,8 @@ document.addEventListener("mic:ready", async (e) => {
   requestAnimationFrame(draw);
   audioLoop();
 
-  if (video) {
-    video.addEventListener("loadedmetadata", resizeVideo);
+  if (bgVideoEl) {
+    bgVideoEl.addEventListener("loadedmetadata", resizeVideo);
   }
 });
 

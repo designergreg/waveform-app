@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/panel.css" />
 </head>
 
 <body>
@@ -55,7 +56,7 @@
 
       <!-- Pause / On hold -->
       <div class="icon-button" id="pauseBtn">
-        <img src="../icons/linear/pause.svg" alt="Pause" />
+        <img src="../icons/bold/pause.svg" alt="Pause" />
       </div>
 
       <!-- Mute (shown only when PTT is OFF; default is hidden) -->
@@ -106,7 +107,7 @@
             </div>
 
             <!-- Speakers -->
-            <div class="more-item-row">
+            <div class="more-item-row mobile-only">
               <div class="more-item flex-1">
                 <div class="icon-list-item">
                   <img src="../icons/linear/audio_on.svg" alt="Speakers" />
@@ -117,7 +118,7 @@
             </div>
 
             <!-- Push-to-talk (PTT) toggle row -->
-            <div class="more-item-row ptt-row">
+            <div class="more-item-row ptt-row mobile-only">
               <div class="more-item flex-1">
                 <div class="icon-list-item">
                   <img src="../icons/linear/microphone.svg" alt="Push-to-talk" />
@@ -132,7 +133,7 @@
             </div>
 
             <!-- Audio Settings -->
-            <div class="more-item-row" style="display:none;">
+            <div class="more-item-row desktop-only" id="audioSettingsRow">
               <div class="more-item">
                 <div class="icon-list-item">
                   <img src="../icons/linear/setting.svg" alt="Audio Settings" />
@@ -140,6 +141,7 @@
                 <div class="more-label">Audio Settings</div>
               </div>
             </div>
+
 
           </div>
 
@@ -162,6 +164,132 @@
         </div> <!-- /.more-menu-content -->
       </div>   <!-- /.more-menu-container -->
     </div>     <!-- /#moreMenu -->
+
+        <!-- =======================================================
+         AUDIO SETTINGS SIDE PANEL
+         ======================================================= -->
+    <div id="audioPanel" class="audio-panel">
+      <header class="audio-panel__header">
+        <div class="audio-panel__title">Audio Settings</div>
+        <button class="audio-panel__close-btn" aria-label="Close">
+          <img src="../icons/linear/close.svg" alt="Close" class="audio-panel__close-icon" />
+        </button>
+
+      </header>
+
+      <!-- Speaker section -->
+      <section class="audio-panel__section">
+        <div class="audio-row">
+          <div class="audio-row__label">
+            <span class="audio-row__icon">
+              <img src="../icons/linear/audio_on.svg" alt="" />
+            </span>
+            <span class="audio-row__title">Speaker Volume</span>
+          </div>
+          <div class="slider" aria-hidden="true">
+            <div class="slider__value"></div>
+          </div>
+        </div>
+
+        <div class="divider divider--spaced"></div>
+
+        <div class="section-label">Select a Speaker</div>
+
+        <div class="device-list">
+          <div class="device-option device-option--selected">
+            <div class="device-option__check">
+              <img src="../icons/linear/tick.svg" alt="" class="device-option__check-icon" />
+            </div>
+            <div class="device-option__label device-option__label--selected">
+              System default (MacBook Pro Speakers (Built-in))
+            </div>
+          </div>
+
+          <div class="device-option">
+            <div class="device-option__label">
+              MacBook Pro Speakers (Built-in)
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Microphone section -->
+      <section class="audio-panel__section audio-panel__section--middle">
+        <div class="audio-row">
+          <div class="audio-row__label">
+            <span class="audio-row__icon">
+              <img src="../icons/linear/microphone.svg" alt="" />
+            </span>
+            <span class="audio-row__title">Microphone Level</span>
+          </div>
+
+          <div class="mic-level">
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar mic-level__bar--active"></span>
+            <span class="mic-level__bar"></span>
+            <span class="mic-level__bar"></span>
+            <span class="mic-level__bar"></span>
+            <span class="mic-level__bar"></span>
+            <span class="mic-level__bar"></span>
+            <span class="mic-level__bar"></span>
+          </div>
+        </div>
+
+        <div class="divider divider--spaced"></div>
+
+        <div class="section-label">Select a Microphone</div>
+
+        <div class="device-list">
+          <div class="device-option device-option--selected">
+            <div class="device-option__check">
+              <img src="../icons/linear/tick.svg" alt="" class="device-option__check-icon" />
+            </div>
+            <div class="device-option__label device-option__label--selected">
+              System default (MacBook Pro Microphone (Built-in))
+            </div>
+          </div>
+
+          <div class="device-option">
+            <div class="device-option__label">
+              MacBook Pro Microphone (Built-in)
+            </div>
+          </div>
+
+          <div class="device-option">
+            <div class="device-option__label">
+              Logitech StreamCam
+            </div>
+          </div>
+
+          <div class="device-option">
+            <div class="device-option__label">
+              Zoe Smith iPhone Microphone
+            </div>
+          </div>
+        </div>
+
+        <div class="divider divider--spaced"></div>
+
+        <div class="push-row panel-ptt-row">
+        <div class="push-row__text">
+          <div class="push-row__title">Push-to-talk</div>
+          <div class="push-row__description">
+            Press and hold spacebar to talk.
+          </div>
+        </div>
+
+        <!-- Same toggle component as More menu -->
+        <div class="toggle-switch" data-toggle="On">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+      </section>
+    </div>
+
   </div>       <!-- /#agentScreen -->
 
   <!-- =========================================================
@@ -174,5 +302,6 @@
   <script src="js/pause.js"></script>
   <script src="js/mute.js"></script>
   <script src="js/more.js"></script>
+  <script src="js/panel.js"></script>
 </body>
 </html>

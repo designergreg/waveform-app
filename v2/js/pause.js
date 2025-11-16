@@ -47,7 +47,7 @@
     if (pauseIcon) {
       pauseIcon.src = isOnHold
         ? "../icons/bold/play.svg"
-        : "../icons/linear/pause.svg";
+        : "../icons/bold/pause.svg";
     }
 
     // Prompt text routing (delegated through the shared prompt system)

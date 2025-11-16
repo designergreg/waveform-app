@@ -2,6 +2,11 @@
    GLOBAL RESET & BASE
    ============================================================ */
 
+:root {
+  /* width of the audio settings side panel */
+  --audio-panel-width: 448px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -61,6 +66,16 @@ html, body {
   z-index: -2;
 }
 
+/* When the panel has been used at least once, animate video moves */
+body.panel-animate #bgVideo {
+  transition:
+    transform 0.3s ease,
+    left 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease;
+}
+
+
 /* Full-screen invisible touch target for PTT */
 #touchTarget {
   position: fixed;
@@ -96,8 +111,8 @@ canvas#wave {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100vw - 32px);   /* dynamic width */
-  max-width: 408px;            /* cap width */
+  width: calc(100vw - 32px);
+  max-width: 408px;
   height: 60px;
   border-radius: 30px;
   background: rgba(0, 0, 0, 0.25);
@@ -109,7 +124,14 @@ canvas#wave {
   z-index: 1;
   pointer-events: auto;
   opacity: 1;
-  transition: opacity 0.25s ease;
+
+  /* add transform here */
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+
+
+body.panel-open .actionbar {
+  transform: translateX(calc(-50% - var(--audio-panel-width) / 2));
 }
 
 /* Main prompt text in action bar */
@@ -201,7 +223,17 @@ canvas#wave {
   right: calc(50vw - (min(408px, calc(100vw - 32px)) / 2) + 6px);
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    right 0.3s ease;   /* add this */
+}
+
+
+body.panel-open #moreMenu {
+  right: calc(
+    50vw - (min(408px, calc(100vw - 32px)) / 2) + 6px + var(--audio-panel-width) / 2
+  );
 }
 
 /* Menu "open" animation */
@@ -300,6 +332,30 @@ canvas#wave {
   margin: 8px 0;
 }
 
+/* ============================================================
+   MORE MENU: DESKTOP vs MOBILE ROW VISIBILITY
+   ============================================================ */
+
+/* Default to desktop behavior */
+.desktop-only {
+  display: flex;   /* matches .more-item-row flex */
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* On touch/mobile (no hover, coarse pointer), invert visibility */
+@media (hover: none) and (pointer: coarse) {
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: flex;
+  }
+}
+
 
 /* ============================================================
    TOGGLE SWITCH (Push-to-talk in menu)
@@ -388,6 +444,10 @@ canvas#wave {
   background: rgba(0,0,0,0.4);
   box-sizing: border-box;
   transition: transform 0.25s ease;
+}
+
+body.panel-open #talkPrompt {
+  transform: translateX(calc(-50% - var(--audio-panel-width) / 2)) scale(1);
 }
 
 /* Inner text inside talkPrompt */

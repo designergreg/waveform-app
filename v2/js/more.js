@@ -156,65 +156,103 @@
   });
 
   /* ------------------------------------------------------------
-   * Push-to-talk toggle: visual + prompt routing
+   * Push-to-talk toggle: shared between More menu & panel
    * ------------------------------------------------------------ */
 
-  const pttRow    = moreMenu.querySelector(".ptt-row");
-  const pttToggle = moreMenu.querySelector(".toggle-switch");
+  const pttRowMenu    = moreMenu.querySelector(".ptt-row");
+  const pttToggleMenu = moreMenu.querySelector(".toggle-switch");
 
-  if (pttRow && pttToggle) {
-    pttRow.addEventListener("pointerdown", (e) => {
+  const pttRowPanel   = document.querySelector("#audioPanel .panel-ptt-row");
+  const pttTogglePanel= document.querySelector("#audioPanel .toggle-switch");
+
+  function setPTTState(isOn) {
+    // Update global PTT mode
+    window.isPTTOn = isOn;
+
+    // Sync both toggle UIs (menu + panel)
+    [pttToggleMenu, pttTogglePanel].forEach((toggle) => {
+      if (!toggle) return;
+      toggle.classList.toggle("off", !isOn);
+      toggle.setAttribute("data-toggle", isOn ? "On" : "Off");
+    });
+
+    // If we are switching PTT back ON, force mute OFF
+    if (isOn && typeof window.setMutedState === "function") {
+      window.setMutedState(false);
+    }
+
+    // If PTT just turned ON and we're NOT on hold,
+    // explicitly restore the idle PTT prompt so it appears immediately
+    const onHold =
+      document.body.classList.contains("on-hold") || !!window.isOnHold;
+
+    if (isOn && !onHold && typeof window.setPromptText === "function") {
+      const isMobile =
+        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+
+      const idleMsg = isMobile
+        ? "Press and hold screen to talk"
+        : "Hold spacebar to talk";
+
+      window.setPromptText(idleMsg);
+    }
+
+    // Toggle body class for PTT-off styles
+    document.body.classList.toggle("ptt-off", !isOn);
+
+    // Show/hide mute button in the action bar
+    const muteBtn = document.getElementById("muteBtn");
+    if (muteBtn) {
+      muteBtn.style.display = isOn ? "none" : "flex";
+    }
+
+    // Re-render prompt routing (actionbar-text vs talkPrompt)
+    if (typeof window.updatePromptMode === "function") {
+      window.updatePromptMode();
+    }
+
+    // Let wave.js reconsider auto-hide
+    if (typeof window.refreshActionbarAutoHide === "function") {
+      window.refreshActionbarAutoHide();
+    }
+  }
+
+  function handlePTTTogglePointer(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const currentOn = window.isPTTOn !== false; // default true if undefined
+    setPTTState(!currentOn);
+  }
+
+  // Attach handler to More menu row (mobile)
+  if (pttRowMenu && pttToggleMenu) {
+    pttRowMenu.addEventListener("pointerdown", handlePTTTogglePointer);
+  }
+
+  // Attach handler to panel row (desktop)
+  if (pttRowPanel && pttTogglePanel) {
+    pttRowPanel.addEventListener("pointerdown", handlePTTTogglePointer);
+  }
+
+
+  /* ------------------------------------------------------------
+   * Audio Settings row → open side panel
+   * ------------------------------------------------------------ */
+
+  const audioSettingsRow = document.getElementById("audioSettingsRow");
+  if (audioSettingsRow) {
+    audioSettingsRow.addEventListener("pointerdown", (e) => {
       e.stopPropagation();
       e.preventDefault();
 
-      const isNowOff = pttToggle.classList.toggle("off");
-      const isOn     = !isNowOff;
+      // Close the More menu
+      closeMenu();
 
-      pttToggle.setAttribute("data-toggle", isOn ? "On" : "Off");
-
-      // Update global PTT mode
-      window.isPTTOn = isOn;
-
-      // If we are switching PTT back ON, force mute OFF
-      if (isOn && typeof window.setMutedState === "function") {
-        window.setMutedState(false);
-      }
-
-      // If PTT just turned ON and we're NOT on hold,
-      // explicitly restore the idle PTT prompt so it appears immediately
-      const onHold =
-        document.body.classList.contains("on-hold") || !!window.isOnHold;
-
-      if (isOn && !onHold && typeof window.setPromptText === "function") {
-        const isMobile =
-          /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-          (navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
-
-        const idleMsg = isMobile
-          ? "Press and hold screen to talk"
-          : "Hold spacebar to talk";
-
-        window.setPromptText(idleMsg);
-      }
-
-      // Toggle body class for PTT-off styles
-      document.body.classList.toggle("ptt-off", !isOn);
-
-      // Show/hide mute button in the action bar
-      const muteBtn = document.getElementById("muteBtn");
-      if (muteBtn) {
-        muteBtn.style.display = isOn ? "none" : "flex";
-      }
-
-      // Re-render prompt routing (actionbar-text vs talkPrompt)
-      if (typeof window.updatePromptMode === "function") {
-        window.updatePromptMode();
-      }
-
-      // 🔁 Whenever PTT changes, let wave.js reconsider auto-hide
-      // (it will only actually start the timer if PTT is OFF and no buttons are active)
-      if (typeof window.refreshActionbarAutoHide === "function") {
-        window.refreshActionbarAutoHide();
+      // Open the side panel
+      if (typeof window.openAudioPanel === "function") {
+        window.openAudioPanel();
       }
     });
   }

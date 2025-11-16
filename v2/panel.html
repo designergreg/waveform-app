@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Audio Settings</title>
+
+  <!-- Inter font (optional but matches Figma) -->
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="css/panel.css">
+</head>
+
+<body>
+  <div class="audio-panel">
+    <!-- Header -->
+    <header class="audio-panel__header">
+      <div class="audio-panel__title">Audio Settings</div>
+      <button class="audio-panel__close-btn" aria-label="Close">
+        <span class="audio-panel__close-icon"></span>
+      </button>
+    </header>
+
+    <!-- Speaker section -->
+    <section class="audio-panel__section">
+      <div class="audio-row">
+        <div class="audio-row__label">
+          <span class="audio-row__icon">
+            <img src="../icons/linear/audio_on.svg" alt="" />
+          </span>
+          <span class="audio-row__title">Speaker volume</span>
+        </div>
+        <div class="slider" aria-hidden="true">
+          <div class="slider__value"></div>
+        </div>
+      </div>
+
+      <div class="divider divider--spaced"></div>
+
+      <div class="section-label">Select a speaker</div>
+
+      <div class="device-list">
+        <div class="device-option device-option--selected">
+          <div class="device-option__label">
+            System default (MacBook Pro Speakers (Built-in))
+          </div>
+          <div class="device-option__check">
+            <img src="../icons/linear/tick.svg" alt="" class="device-option__check-icon" />
+          </div>
+
+        </div>
+
+        <div class="device-option">
+          <div class="device-option__label">
+            MacBook Pro Speakers (Built-in)
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Microphone section -->
+    <section class="audio-panel__section audio-panel__section--middle">
+      <div class="audio-row">
+        <div class="audio-row__label">
+          <span class="audio-row__icon">
+            <img src="../icons/linear/microphone.svg" alt="" />
+          </span>
+          <span class="audio-row__title">Microphone level</span>
+        </div>
+
+        <div class="mic-level">
+          <!-- 12 bars -->
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar mic-level__bar--active"></span>
+          <span class="mic-level__bar"></span>
+          <span class="mic-level__bar"></span>
+          <span class="mic-level__bar"></span>
+          <span class="mic-level__bar"></span>
+          <span class="mic-level__bar"></span>
+          <span class="mic-level__bar"></span>
+        </div>
+      </div>
+
+      <div class="divider divider--spaced"></div>
+
+      <div class="section-label">Select a microphone</div>
+
+      <div class="device-list">
+        <div class="device-option device-option--selected">
+          <div class="device-option__label">
+            System default (MacBook Pro Microphone (Built-in))
+          </div>
+          <div class="device-option__check">
+            <img src="../icons/linear/tick.svg" alt="" class="device-option__check-icon" />
+          </div>
+        </div>
+
+        <div class="device-option">
+          <div class="device-option__label">
+            MacBook Pro Microphone (Built-in)
+          </div>
+        </div>
+
+        <div class="device-option">
+          <div class="device-option__label">
+            Logitech StreamCam
+          </div>
+        </div>
+
+        <div class="device-option">
+          <div class="device-option__label">
+            Bill Trenchard iPhone Microphone
+          </div>
+        </div>
+      </div>
+
+      <div class="divider divider--spaced"></div>
+
+      <!-- Push to talk -->
+      <div class="push-row panel-ptt-row">
+        <div class="push-row__text">
+          <div class="push-row__title">Push-to-talk</div>
+          <div class="push-row__description">
+            Press and hold spacebar to talk.
+          </div>
+        </div>
+
+        <!-- Same toggle component as More menu -->
+        <div class="toggle-switch" data-toggle="On">
+          <div class="toggle-knob"></div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</body>
+</html>
