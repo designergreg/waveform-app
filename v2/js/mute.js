@@ -73,7 +73,7 @@
     if (muteIcon) {
       muteIcon.src = isMuted
         ? "../icons/bold/live_mic_slash.svg"
-        : "../icons/linear/live_mic.svg";
+        : "../icons/bold/live_mic.svg";
     }
 
     // Hide/show waveform + glow (both rendered into the same canvas)
